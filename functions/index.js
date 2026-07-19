@@ -17,16 +17,16 @@ const FONT_PATH = path.join(__dirname, 'fonts', 'Tajawal-Bold.ttf')
 const TEMPLATE_PATH = path.join(__dirname, 'index-template.html')
 
 // ── Defaults ──────────────────────────────────────────────────────────
-const DEFAULT_TITLE = 'Birthday Wishes 🎂 تهنئة عيد ميلاد فاخرة'
+const DEFAULT_TITLE = 'بطاقة عيد ميلاد 🎂'
 const DEFAULT_DESC = 'أنشئ رابط تهنئة مخصص بتجربة تفاعلية فريدة — كيك، شموع، وموسيقى.'
 const DOMAIN = 'https://birthdayweb-ae7a4.web.app'
 
-// ── Helper: read name from Firestore ──────────────────────────────────
-async function getNameById(docId) {
+// ── Helper: read data from Firestore ────────────────────────────────────
+async function getBirthdayData(docId) {
   try {
     const snap = await db.collection('birthdays').doc(docId).get()
     if (snap.exists) {
-      return snap.data().name || null
+      return snap.data()
     }
   } catch (err) {
     console.error('Firestore read error:', err.message)
@@ -45,12 +45,13 @@ export const renderPage = onRequest(
       const segments = req.path.split('/').filter(Boolean) // ['b', 'abc123']
       const docId = segments[1] || ''
 
-      // Read name from Firestore
-      const name = docId ? await getNameById(docId) : null
+      // Read data from Firestore
+      const data = docId ? await getBirthdayData(docId) : null
+      const name = data?.name || null
 
       // Build meta values
       const title = name
-        ? `عيد ميلاد ${name} 🎂 — تهنئة فاخرة`
+        ? `بطاقة عيد ميلاد لـ ${name} 🎂`
         : DEFAULT_TITLE
       const description = name
         ? `تهنئة عيد ميلاد خاصة بانتظار ${name} — كيك، شموع، وموسيقى 🎉`
@@ -142,12 +143,34 @@ export const ogImage = onRequest(
   async (req, res) => {
     try {
       const docId = req.query.id || ''
-      const name = docId ? await getNameById(docId) : null
+      const data = docId ? await getBirthdayData(docId) : null
+      const name = data?.name || null
+      const theme = data?.theme || 'sapphire'
+      
       const headline = name
-        ? `عيد ميلاد ${name} 🎂`
-        : 'تهنئة عيد ميلاد فاخرة'
+        ? `بطاقة عيد ميلاد لـ ${name} 🎂`
+        : 'بطاقة عيد ميلاد 🎂'
 
       const font = getFont()
+
+      // Theme colors
+      const themeColors = {
+        sapphire: {
+          background: 'linear-gradient(to bottom, #051937, #020B18)',
+          primary: '#0F52BA',
+          secondary: '#E8B54D',
+          muted: '#7C93B0',
+          textMain: '#FBF3E7'
+        },
+        rose: {
+          background: 'linear-gradient(to bottom, #1A0410, #0F0209)',
+          primary: '#F66C89',
+          secondary: '#F27798',
+          muted: '#566B81',
+          textMain: '#F5F5F5'
+        }
+      }
+      const tc = themeColors[theme] || themeColors.sapphire
 
       // Build the design as Satori JSX-like objects
       const element = {
@@ -160,14 +183,14 @@ export const ogImage = onRequest(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundImage: 'linear-gradient(to bottom, #051937, #020B18)',
+            backgroundImage: tc.background,
             fontFamily: 'Tajawal',
             position: 'relative',
             overflow: 'hidden',
           },
           children: [
             // Sparkles
-            ...createSparkles(),
+            ...createSparkles(tc.secondary),
             // Content wrapper
             {
               type: 'div',
@@ -188,12 +211,12 @@ export const ogImage = onRequest(
                         width: '110px',
                         height: '110px',
                         borderRadius: '50%',
-                        border: '2px solid #E8B54D',
+                        border: `2px solid ${tc.secondary}`,
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
                         marginBottom: '30px',
-                        backgroundColor: 'rgba(232, 181, 77, 0.05)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
                       },
                       children: [
                         {
@@ -213,7 +236,7 @@ export const ogImage = onRequest(
                       style: {
                         fontSize: name ? '72px' : '84px',
                         fontWeight: 700,
-                        color: '#FBF3E7',
+                        color: tc.textMain,
                         marginBottom: '20px',
                         lineHeight: 1.2,
                         textAlign: 'center',
@@ -230,7 +253,7 @@ export const ogImage = onRequest(
                       style: {
                         fontSize: '30px',
                         fontWeight: 700,
-                        color: '#BFD6F5',
+                        color: tc.muted,
                         textAlign: 'center',
                         direction: 'rtl',
                       },
@@ -263,7 +286,7 @@ export const ogImage = onRequest(
                     props: {
                       style: {
                         fontSize: '18px',
-                        color: '#7C93B0',
+                        color: tc.muted,
                         direction: 'rtl',
                       },
                       children: 'أنشئ تهنئتك التفاعلية الآن — كيك، شموع، وموسيقى',
@@ -274,7 +297,8 @@ export const ogImage = onRequest(
                     props: {
                       style: {
                         fontSize: '16px',
-                        color: 'rgba(124, 147, 176, 0.5)',
+                        color: tc.muted,
+                        opacity: 0.7,
                       },
                       children: 'birthdayweb-ae7a4.web.app',
                     },
@@ -318,7 +342,7 @@ export const ogImage = onRequest(
 )
 
 // ── Sparkle helpers ───────────────────────────────────────────────────
-function createSparkles() {
+function createSparkles(color) {
   const positions = [
     { top: '15%', left: '20%', size: '30px', opacity: 0.2 },
     { top: '25%', right: '15%', size: '20px', opacity: 0.15 },
@@ -336,7 +360,7 @@ function createSparkles() {
         bottom: p.bottom,
         left: p.left,
         right: p.right,
-        color: '#E8B54D',
+        color: color,
         opacity: p.opacity,
         fontSize: p.size,
       },

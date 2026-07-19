@@ -61,12 +61,23 @@ export default function ReceiverPage() {
     }
   }, [isAudioPlaying, isYouTube, audioUrl])
 
+  // Apply theme
+  useEffect(() => {
+    if (birthdayData) {
+      const activeTheme = birthdayData.theme || 'sapphire'
+      document.documentElement.dataset.theme = activeTheme
+    }
+    return () => {
+      delete document.documentElement.dataset.theme
+    }
+  }, [birthdayData])
+
   // Shared background
   const bg = (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-gradient-to-br from-neutral-950 via-primary-950 to-neutral-950" />
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-background" />
       <div className="absolute top-0 start-1/4 w-64 h-64 rounded-full blur-3xl opacity-20 bg-secondary/40" />
-      <div className="absolute bottom-0 end-1/4 w-64 h-64 rounded-full blur-3xl opacity-15 bg-primary-900/60" />
+      <div className="absolute bottom-0 end-1/4 w-64 h-64 rounded-full blur-3xl opacity-15 bg-primary/20" />
       <div className="noise-overlay" />
     </div>
   )
@@ -88,15 +99,15 @@ export default function ReceiverPage() {
 
           {/* Shimmer loading bars */}
           <div className="space-y-3 w-48">
-            <div className="h-2.5 rounded-full bg-primary-800/60 overflow-hidden">
+            <div className="h-2.5 rounded-full bg-surface overflow-hidden">
               <div className="h-full w-full bg-gradient-to-e from-transparent via-secondary/30 to-transparent animate-shimmer" />
             </div>
-            <div className="h-2 rounded-full bg-primary-800/40 overflow-hidden w-3/4 mx-auto">
+            <div className="h-2 rounded-full bg-surface/50 overflow-hidden w-3/4 mx-auto">
               <div className="h-full w-full bg-gradient-to-e from-transparent via-secondary/20 to-transparent animate-shimmer" />
             </div>
           </div>
 
-          <p className="text-tertiary/50 text-sm font-label mt-2">
+          <p className="text-muted text-sm font-label mt-2">
             جاري تحميل مفاجأتك...
           </p>
         </div>
@@ -115,16 +126,16 @@ export default function ReceiverPage() {
           transition={{ duration: 0.8 }}
           className="relative z-10 w-full max-w-md"
         >
-          <div className="gradient-border rounded-3xl p-10 bg-primary-950/80 backdrop-blur-xl">
+          <div className="gradient-border rounded-3xl p-10 bg-surface backdrop-blur-xl">
             <div className="text-6xl mb-5">
               {status === 'notfound' ? '😔' : '⚠️'}
             </div>
-            <h1 className="font-headline text-3xl text-tertiary mb-3">
+            <h1 className="font-headline text-3xl text-textMain mb-3">
               {status === 'notfound'
                 ? 'هذا الرابط غير صالح'
                 : 'حدث خطأ في التحميل'}
             </h1>
-            <p className="text-tertiary/60 font-body text-base mb-8 leading-relaxed">
+            <p className="text-textMain/80 font-body text-base mb-8 leading-relaxed">
               {status === 'notfound'
                 ? 'قد يكون الرابط تالفاً أو مُعدَّلاً. تواصل مع من أرسل لك الرابط للحصول على رابط صحيح.'
                 : 'تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مجدداً.'}
@@ -134,7 +145,7 @@ export default function ReceiverPage() {
               {status === 'error' && (
                 <button
                   onClick={() => window.location.reload()}
-                  className="inline-flex items-center justify-center gap-2 bg-secondary text-neutral-950 font-semibold px-6 py-3 rounded-2xl hover:bg-secondary-400 active:scale-95 transition-all duration-200 font-label"
+                  className="inline-flex items-center justify-center gap-2 bg-secondary text-background font-semibold px-6 py-3 rounded-2xl hover:opacity-90 active:scale-95 transition-all duration-200 font-label"
                 >
                   <span>🔄</span>
                   <span>إعادة المحاولة</span>
@@ -142,7 +153,7 @@ export default function ReceiverPage() {
               )}
               <a
                 href="/"
-                className="inline-flex items-center justify-center gap-2 bg-primary-900/50 text-tertiary/80 border border-secondary/30 font-medium px-6 py-3 rounded-2xl hover:bg-primary-800/60 active:scale-95 transition-all duration-200 font-label"
+                className="inline-flex items-center justify-center gap-2 bg-surface text-textMain/80 border border-secondary/30 font-medium px-6 py-3 rounded-2xl hover:bg-surface/80 active:scale-95 transition-all duration-200 font-label"
               >
                 <span>✨</span>
                 <span>أنشئ تهنئتك الخاصة</span>

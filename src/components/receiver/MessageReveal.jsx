@@ -23,7 +23,11 @@ export default function MessageReveal({ name, message }) {
   }, [])
 
   function fireConfetti() {
-    const colors = ['#E8B54D', '#F9F0DB', '#0F52BA', '#3386ED', '#F7FAFC', '#E5C16F']
+    const style = getComputedStyle(document.documentElement)
+    const p = style.getPropertyValue('--color-primary').trim() || '#0F52BA'
+    const s = style.getPropertyValue('--color-secondary').trim() || '#E8B54D'
+    const m = style.getPropertyValue('--color-muted').trim() || '#334C76'
+    const colors = [p, s, m, '#FFFFFF', '#F5F5F5']
     const origin = { y: 0.6 }
 
     // Left burst
@@ -106,12 +110,12 @@ export default function MessageReveal({ name, message }) {
         {/* Card glow */}
         <div
           className="absolute -inset-4 rounded-3xl blur-xl opacity-30"
-          style={{ background: 'radial-gradient(ellipse, #E8B54D 0%, #0F52BA 70%, transparent 100%)' }}
+          style={{ background: 'radial-gradient(ellipse, var(--color-secondary) 0%, var(--color-primary) 70%, transparent 100%)' }}
           aria-hidden="true"
         />
 
         {/* Card */}
-        <div className="relative gradient-border rounded-3xl p-8 md:p-10 bg-primary-900/90 backdrop-blur-lg gold-shimmer">
+        <div className="relative gradient-border rounded-3xl p-8 md:p-10 bg-surface/90 backdrop-blur-lg gold-shimmer">
 
           {/* Big emoji */}
           <motion.div
@@ -152,7 +156,7 @@ export default function MessageReveal({ name, message }) {
 
           {/* Message with word-by-word animation */}
           <motion.div
-            className="font-body text-lg md:text-xl leading-loose text-tertiary/90"
+            className="font-body text-lg md:text-xl leading-loose text-textMain/90"
             dir="auto"
             lang="ar"
           >
@@ -233,7 +237,7 @@ export default function MessageReveal({ name, message }) {
       >
         <a
           href="/"
-          className="text-xs text-tertiary/30 hover:text-secondary/60 transition-colors duration-200 font-label underline underline-offset-4"
+          className="text-xs text-textMain/30 hover:text-secondary/60 transition-colors duration-200 font-label underline underline-offset-4"
         >
           أنشئ تهنئتك الخاصة ✨
         </a>

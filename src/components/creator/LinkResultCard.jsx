@@ -36,13 +36,13 @@ export default function LinkResultCard({ link }) {
           <div className="flex-1 h-px bg-gradient-to-s from-transparent to-secondary/30" />
         </div>
 
-        <p className="text-center text-sm text-tertiary/70 font-label">
+        <p className="text-center text-sm text-textMain/70 font-label">
           رابطك الخاص جاهز — شاركه مع من تحب!
         </p>
 
         {/* Link display */}
         <div className="relative gradient-border rounded-2xl p-4">
-          <div className="gold-shimmer rounded-xl bg-primary-950/80 px-4 py-3 pe-12 overflow-hidden">
+          <div className="gold-shimmer rounded-xl bg-surface/80 px-4 py-3 pe-12 overflow-hidden">
             <p
               dir="ltr"
               className="text-sm text-secondary/80 font-label truncate select-all cursor-text"

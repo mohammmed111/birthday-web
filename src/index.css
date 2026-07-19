@@ -2,60 +2,13 @@
 
 /* ─── Tailwind v4 Theme — Royal Sapphire & Gold Gala ──────────────── */
 @theme {
-  /* ── Primary: Sapphire Blue ── */
-  --color-primary-50:  #E6F0FD;
-  --color-primary-100: #CCE1FB;
-  --color-primary-200: #99C3F6;
-  --color-primary-300: #66A4F2;
-  --color-primary-400: #3386ED;
-  --color-primary-500: #0F52BA;
-  --color-primary-600: #0C4295;
-  --color-primary-700: #093170;
-  --color-primary-800: #06214A;
-  --color-primary-900: #031025;
-  --color-primary-950: #010813;
-  --color-primary:     #0F52BA;
-
-  /* ── Secondary: Bright Warm Gold ── */
-  --color-secondary-50:  #FCF7ED;
-  --color-secondary-100: #F9F0DB;
-  --color-secondary-200: #F2E0B7;
-  --color-secondary-300: #ECD193;
-  --color-secondary-400: #E5C16F;
-  --color-secondary-500: #E8B54D;
-  --color-secondary-600: #BA913E;
-  --color-secondary-700: #8B6D2E;
-  --color-secondary-800: #5D481F;
-  --color-secondary-900: #2E240F;
-  --color-secondary-950: #171208;
-  --color-secondary:     #E8B54D;
-
-  /* ── Tertiary: Cool White ── */
-  --color-tertiary-50:  #FFFFFF;
-  --color-tertiary-100: #F7FAFC;
-  --color-tertiary-200: #EBF2F8;
-  --color-tertiary-300: #DFEBF3;
-  --color-tertiary-400: #D3E3EF;
-  --color-tertiary-500: #C7DBEA;
-  --color-tertiary-600: #9FADC2;
-  --color-tertiary-700: #778292;
-  --color-tertiary-800: #505762;
-  --color-tertiary-900: #282B31;
-  --color-tertiary:     #F7FAFC;
-
-  /* ── Neutral: Midnight Sapphire ── */
-  --color-neutral-50:  #E6E9EE;
-  --color-neutral-100: #CCD2DD;
-  --color-neutral-200: #99A5BB;
-  --color-neutral-300: #667998;
-  --color-neutral-400: #334C76;
-  --color-neutral-500: #102B52;
-  --color-neutral-600: #0D2242;
-  --color-neutral-700: #0A1A31;
-  --color-neutral-800: #081425;
-  --color-neutral-900: #051937;
-  --color-neutral-950: #020B19;
-  --color-neutral:     #051937;
+  /* ── Semantic Colors ── */
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-surface: var(--color-surface);
+  --color-muted: var(--color-muted);
+  --color-background: var(--color-background);
+  --color-text-main: var(--color-text-main);
 
   /* ── Typography ── */
   --font-headline: "Playfair Display", "Amiri", Georgia, serif;
@@ -85,8 +38,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background: #051937;
-  color: #F7FAFC;
+  background: var(--color-background);
+  color: var(--color-text-main);
   font-family: "Noto Serif", "Noto Serif Arabic", serif;
   min-height: 100vh;
   overflow-x: hidden;
@@ -101,14 +54,14 @@ input, textarea, select {
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #051937; }
-::-webkit-scrollbar-thumb { background: #E8B54D; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #E5C16F; }
+::-webkit-scrollbar-track { background: var(--color-background); }
+::-webkit-scrollbar-thumb { background: var(--color-secondary); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { opacity: 0.8; }
 
 /* ─── Selection ─────────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(232, 181, 77, 0.3);
-  color: #F7FAFC;
+  background: var(--color-secondary);
+  color: var(--color-background);
 }
 
 /* ─── Noise overlay ─────────────────────────────────────────────────── */
@@ -240,4 +193,24 @@ input, textarea, select {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ─── Themes ────────────────────────────────────────────────────────── */
+:root {
+  /* Sapphire (Default) */
+  --color-primary: #0F52BA;
+  --color-secondary: #E8B54D;
+  --color-surface: #020b19b3; /* Equivalent to primary-950/70 */
+  --color-muted: #334C76;
+  --color-background: #020B19;
+  --color-text-main: #F7FAFC;
+}
+
+:root[data-theme="rose"] {
+  --color-primary: #F66C89;
+  --color-secondary: #F27798;
+  --color-surface: #234D68;
+  --color-muted: #566B81;
+  --color-background: #013440;
+  --color-text-main: #F5F5F5;
 }

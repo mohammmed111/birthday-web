@@ -41,7 +41,7 @@ export default function Envelope({ name, onOpen, onStartAudio }) {
               height: `${Math.random() * 2.5 + 0.8}px`,
               top:  `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              background: Math.random() > 0.5 ? '#E8B54D' : '#F7FAFC',
+              background: Math.random() > 0.5 ? 'var(--color-secondary)' : 'var(--color-text-main)',
               opacity: Math.random() * 0.4 + 0.1,
               animation: `twinkle ${4 + Math.random() * 4}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 5}s`,
@@ -60,14 +60,14 @@ export default function Envelope({ name, onOpen, onStartAudio }) {
         <p className="text-secondary/70 text-sm font-label mb-2 tracking-widest uppercase">
           رسالة خاصة إليك
         </p>
-        <h1 className="font-headline text-3xl md:text-4xl text-tertiary">
+        <h1 className="font-headline text-3xl md:text-4xl text-textMain">
           عزيزي/عزيزتي{' '}
           <span className="text-secondary relative" style={{ fontFamily: '"Amiri", serif' }}>
             {name}
             <span className="absolute -bottom-1 start-0 end-0 h-px bg-gradient-to-e from-secondary/0 via-secondary to-secondary/0" />
           </span>
         </h1>
-        <p className="mt-3 text-tertiary/60 font-body text-base">
+        <p className="mt-3 text-textMain/60 font-body text-base">
           وصلك رسالة خاصة بمناسبة يومك المميز 🌟
         </p>
       </motion.div>
@@ -107,7 +107,7 @@ export default function Envelope({ name, onOpen, onStartAudio }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ delay: 1.2 }}
-            className="mt-8 text-tertiary/50 font-label text-sm"
+            className="mt-8 text-textMain/50 font-label text-sm"
           >
             👆 انقر على الظرف لفتحه
           </motion.p>
@@ -144,30 +144,30 @@ function EnvelopeSVG({ phase }) {
         <defs>
           {/* Deep sapphire body gradient */}
           <linearGradient id="envBody" x1="0" y1="0" x2="0.3" y2="1">
-            <stop offset="0%"   stopColor="#0A2647" />
-            <stop offset="100%" stopColor="#051937" />
+            <stop offset="0%"   stopColor="var(--color-surface)" />
+            <stop offset="100%" stopColor="var(--color-background)" />
           </linearGradient>
           {/* Flap gradient */}
           <linearGradient id="envFlap" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stopColor="#0F3D6B" />
-            <stop offset="100%" stopColor="#0A2647" />
+            <stop offset="100%" stopColor="var(--color-surface)" />
           </linearGradient>
           {/* Gold gradient */}
           <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stopColor="#BA913E" />
-            <stop offset="30%"  stopColor="#E8B54D" />
-            <stop offset="60%"  stopColor="#F9F0DB" />
-            <stop offset="100%" stopColor="#E8B54D" />
+            <stop offset="0%"   stopColor="var(--color-secondary)" />
+            <stop offset="30%"  stopColor="var(--color-secondary)" />
+            <stop offset="60%"  stopColor="var(--color-text-main)" />
+            <stop offset="100%" stopColor="var(--color-secondary)" />
           </linearGradient>
           {/* Wax seal gradient */}
           <radialGradient id="sealGrad" cx="50%" cy="45%">
-            <stop offset="0%"   stopColor="#F9F0DB" />
-            <stop offset="40%"  stopColor="#E8B54D" />
-            <stop offset="100%" stopColor="#BA913E" />
+            <stop offset="0%"   stopColor="var(--color-text-main)" />
+            <stop offset="40%"  stopColor="var(--color-secondary)" />
+            <stop offset="100%" stopColor="var(--color-secondary)" />
           </radialGradient>
           {/* Seal shadow */}
           <filter id="sealShadow">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#E8B54D" floodOpacity="0.5" />
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="var(--color-secondary)" floodOpacity="0.5" />
           </filter>
           {/* Glow filter */}
           <filter id="envGlow">
@@ -184,17 +184,17 @@ function EnvelopeSVG({ phase }) {
           fill="none" stroke="url(#goldGrad)" strokeWidth="2" opacity="0.9" />
 
         {/* Inner subtle pattern — diagonal lines for texture */}
-        <line x1="20" y1="70" x2="364" y2="70" stroke="#E8B54D" strokeWidth="0.3" opacity="0.15" />
-        <line x1="20" y1="235" x2="364" y2="235" stroke="#E8B54D" strokeWidth="0.3" opacity="0.15" />
+        <line x1="20" y1="70" x2="364" y2="70" stroke="var(--color-secondary)" strokeWidth="0.3" opacity="0.15" />
+        <line x1="20" y1="235" x2="364" y2="235" stroke="var(--color-secondary)" strokeWidth="0.3" opacity="0.15" />
 
         {/* Side folds with depth */}
-        <path d="M 4 252 L 192 155 L 380 252 Z" fill="#0A2647" opacity="0.6" />
+        <path d="M 4 252 L 192 155 L 380 252 Z" fill="var(--color-surface)" opacity="0.6" />
         <path d="M 4 50 L 192 155 L 4 252 Z"   fill="#071E3A" opacity="0.3" />
         <path d="M 380 50 L 192 155 L 380 252 Z" fill="#041228" opacity="0.4" />
 
         {/* Gold accent lines on folds */}
-        <path d="M 4 252 L 192 155" stroke="#E8B54D" strokeWidth="0.5" opacity="0.2" />
-        <path d="M 380 252 L 192 155" stroke="#E8B54D" strokeWidth="0.5" opacity="0.2" />
+        <path d="M 4 252 L 192 155" stroke="var(--color-secondary)" strokeWidth="0.5" opacity="0.2" />
+        <path d="M 380 252 L 192 155" stroke="var(--color-secondary)" strokeWidth="0.5" opacity="0.2" />
 
         {/* ── Flap ── */}
         <g style={{
@@ -205,7 +205,7 @@ function EnvelopeSVG({ phase }) {
           <path d="M 4 50 L 192 140 L 380 50 Z" fill="url(#envFlap)" />
           <path d="M 4 50 L 192 140 L 380 50 Z" fill="none" stroke="url(#goldGrad)" strokeWidth="1.5" opacity="0.7" />
           {/* Inner flap highlight */}
-          <path d="M 40 56 L 192 125 L 344 56" fill="none" stroke="#E8B54D" strokeWidth="0.4" opacity="0.2" />
+          <path d="M 40 56 L 192 125 L 344 56" fill="none" stroke="var(--color-secondary)" strokeWidth="0.4" opacity="0.2" />
         </g>
 
         {/* ── Wax seal ── */}
@@ -218,7 +218,7 @@ function EnvelopeSVG({ phase }) {
           {!isOpen && (
             <>
               {/* Outer glow ring */}
-              <circle cx="192" cy="140" r="32" fill="#E8B54D" opacity="0.15" filter="url(#envGlow)" />
+              <circle cx="192" cy="140" r="32" fill="var(--color-secondary)" opacity="0.15" filter="url(#envGlow)" />
               {/* Main seal body */}
               <circle cx="192" cy="140" r="26" fill="url(#sealGrad)" filter="url(#sealShadow)" />
               {/* Scalloped edge effect — small bumps around perimeter */}
@@ -226,14 +226,14 @@ function EnvelopeSVG({ phase }) {
                 const angle = (i / 16) * Math.PI * 2
                 const bx = 192 + Math.cos(angle) * 26
                 const by = 140 + Math.sin(angle) * 26
-                return <circle key={i} cx={bx} cy={by} r="2.5" fill="#E8B54D" opacity="0.7" />
+                return <circle key={i} cx={bx} cy={by} r="2.5" fill="var(--color-secondary)" opacity="0.7" />
               })}
               {/* Inner ring */}
-              <circle cx="192" cy="140" r="20" fill="none" stroke="#BA913E" strokeWidth="1" opacity="0.7" />
+              <circle cx="192" cy="140" r="20" fill="none" stroke="var(--color-secondary)" strokeWidth="1" opacity="0.7" />
               {/* Inner decorative ring */}
-              <circle cx="192" cy="140" r="16" fill="none" stroke="#BA913E" strokeWidth="0.5" opacity="0.4" strokeDasharray="2 3" />
+              <circle cx="192" cy="140" r="16" fill="none" stroke="var(--color-secondary)" strokeWidth="0.5" opacity="0.4" strokeDasharray="2 3" />
               {/* Center symbol */}
-              <text x="192" y="146" textAnchor="middle" fontSize="18" fill="#051937" fontWeight="bold" opacity="0.85">✦</text>
+              <text x="192" y="146" textAnchor="middle" fontSize="18" fill="var(--color-background)" fontWeight="bold" opacity="0.85">✦</text>
             </>
           )}
         </g>
@@ -241,13 +241,13 @@ function EnvelopeSVG({ phase }) {
         {/* Bottom gold pearl dots */}
         {Array.from({ length: 18 }).map((_, i) => {
           const x = 15 + i * (354 / 17)
-          return <circle key={i} cx={x} cy="250" r="1" fill="#E8B54D" opacity="0.35" />
+          return <circle key={i} cx={x} cy="250" r="1" fill="var(--color-secondary)" opacity="0.35" />
         })}
 
         {/* Top edge gold dots */}
         {Array.from({ length: 12 }).map((_, i) => {
           const x = 30 + i * (324 / 11)
-          return <circle key={i} cx={x} cy="52" r="0.8" fill="#E8B54D" opacity="0.25" />
+          return <circle key={i} cx={x} cy="52" r="0.8" fill="var(--color-secondary)" opacity="0.25" />
         })}
       </svg>
     </div>

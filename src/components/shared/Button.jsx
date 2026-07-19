@@ -2,21 +2,21 @@ import React from 'react'
 
 const variants = {
   primary: [
-    'bg-secondary text-neutral-950 font-semibold',
-    'hover:bg-yellow-300 active:scale-95',
+    'bg-secondary text-background font-semibold',
+    'hover:opacity-90 active:scale-95',
     'shadow-lg shadow-secondary/20',
     'border border-secondary/50',
   ],
   secondary: [
-    'bg-primary-800 text-tertiary font-medium',
-    'hover:bg-primary-700 active:scale-95',
+    'bg-surface text-textMain font-medium',
+    'hover:bg-surface/80 active:scale-95',
     'shadow-md',
-    'border border-primary-600',
+    'border border-muted',
   ],
   inverted: [
-    'bg-primary-100/10 text-primary-300 font-medium',
-    'hover:bg-primary-100/20 active:scale-95',
-    'border border-primary-400/30',
+    'bg-surface/50 text-textMain font-medium',
+    'hover:bg-surface active:scale-95',
+    'border border-muted',
   ],
   outlined: [
     'bg-transparent text-secondary font-medium',

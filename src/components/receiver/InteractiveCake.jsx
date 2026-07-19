@@ -128,10 +128,10 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
         className="mb-8"
       >
         <p className="text-secondary/70 text-sm font-label tracking-widest mb-1">كل عام وأنت بخير</p>
-        <h2 className="font-headline text-3xl md:text-4xl text-tertiary">
+        <h2 className="font-headline text-3xl md:text-4xl text-textMain">
           <span className="text-secondary">{name}</span> 🎂
         </h2>
-        <p className="mt-2 text-tertiary/60 font-body text-sm">
+        <p className="mt-2 text-textMain/60 font-body text-sm">
           {micState === 'calibrating'
             ? '🔊 جاري معايرة الصوت... انتظر لحظة'
             : micState === 'active'
@@ -165,25 +165,25 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
             exit={{ opacity: 0 }}
             className="mt-6 w-56 space-y-2"
           >
-            <p className="text-xs text-tertiary/50 font-label">
+            <p className="text-xs text-textMain/50 font-label">
               {micState === 'calibrating' ? 'معايرة...' : 'قوة النفخ'}
             </p>
-            <div className="h-2.5 rounded-full overflow-hidden" style={{ background: '#020B19' }}>
+            <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--color-background)' }}>
               <div
                 className="h-full rounded-full transition-all duration-75"
                 style={{
                   width: `${Math.min(volume * 100, 100)}%`,
-                  background: 'linear-gradient(to right, #E8B54D, #ECD193)',
+                  background: 'linear-gradient(to right, var(--color-secondary), var(--color-text-main))',
                 }}
               />
             </div>
             {micState === 'active' && (
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#020B19' }}>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-background)' }}>
                 <div
                   className="h-full rounded-full transition-all duration-150"
                   style={{
                     width: `${Math.min(energy * 100, 100)}%`,
-                    background: 'linear-gradient(to right, #BA913E, #E8B54D, #F9F0DB)',
+                    background: 'linear-gradient(to right, var(--color-secondary), var(--color-secondary), var(--color-text-main))',
                   }}
                 />
               </div>
@@ -201,7 +201,7 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
             transition={{ delay: 0.6 }}
             className="space-y-3"
           >
-            <div className="gradient-border rounded-2xl p-4 text-sm text-tertiary/70 font-label">
+            <div className="gradient-border rounded-2xl p-4 text-sm text-textMain/70 font-label">
               <p className="text-secondary font-semibold mb-1">🎤 كيف يعمل؟</p>
               <p>انفخ في الميكروفون — كلما كانت نفختك أقوى، زاد عدد الشموع المنطفئة!</p>
             </div>
@@ -256,53 +256,53 @@ function CakeSVG({ candles, smokeVisible, volume, micActive, candleAnimConfig })
         <defs>
           {/* Cake layer gradients */}
           <linearGradient id="layer1" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#0D3A7A" />
-            <stop offset="100%" stopColor="#0F52BA" />
+            <stop offset="0%"   stopColor="var(--color-primary)" />
+            <stop offset="100%" stopColor="var(--color-primary)" />
           </linearGradient>
           <linearGradient id="layer2" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#082B5E" />
-            <stop offset="100%" stopColor="#0D3A7A" />
+            <stop offset="0%"   stopColor="var(--color-surface)" />
+            <stop offset="100%" stopColor="var(--color-primary)" />
           </linearGradient>
           <linearGradient id="layer3" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#0F52BA" />
-            <stop offset="100%" stopColor="#051937" />
+            <stop offset="0%"   stopColor="var(--color-primary)" />
+            <stop offset="100%" stopColor="var(--color-background)" />
           </linearGradient>
           {/* Frosting gradient */}
           <linearGradient id="frostingGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#F7FAFC" />
-            <stop offset="100%" stopColor="#EBF2F8" />
+            <stop offset="0%"   stopColor="var(--color-text-main)" />
+            <stop offset="100%" stopColor="var(--color-muted)" />
           </linearGradient>
           {/* Flame gradients */}
           <linearGradient id="flameOuter" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stopColor="#FFFFFF" />
-            <stop offset="35%"  stopColor="#FFF5D4" />
-            <stop offset="70%"  stopColor="#E8B54D" />
-            <stop offset="100%" stopColor="#BA913E" />
+            <stop offset="35%"  stopColor="var(--color-text-main)" />
+            <stop offset="70%"  stopColor="var(--color-secondary)" />
+            <stop offset="100%" stopColor="var(--color-secondary)" />
           </linearGradient>
           <radialGradient id="flameGlow" cx="50%" cy="50%">
-            <stop offset="0%"   stopColor="#E8B54D" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#E8B54D" stopOpacity="0" />
+            <stop offset="0%"   stopColor="var(--color-secondary)" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="var(--color-secondary)" stopOpacity="0" />
           </radialGradient>
           {/* Gold trim gradient */}
           <linearGradient id="goldTrim" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stopColor="#BA913E" />
-            <stop offset="50%"  stopColor="#F9F0DB" />
-            <stop offset="100%" stopColor="#BA913E" />
+            <stop offset="0%"   stopColor="var(--color-secondary)" />
+            <stop offset="50%"  stopColor="var(--color-text-main)" />
+            <stop offset="100%" stopColor="var(--color-secondary)" />
           </linearGradient>
           {/* Gold plate gradient */}
           <linearGradient id="goldPlate" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#E8B54D" />
-            <stop offset="50%"  stopColor="#F9F0DB" />
-            <stop offset="100%" stopColor="#C6912E" />
+            <stop offset="0%"   stopColor="var(--color-secondary)" />
+            <stop offset="50%"  stopColor="var(--color-text-main)" />
+            <stop offset="100%" stopColor="var(--color-secondary)" />
           </linearGradient>
         </defs>
 
         {/* ─── Gold Plate / Base ─── */}
         <ellipse cx="160" cy="268" rx="148" ry="14" fill="url(#goldPlate)" />
-        <ellipse cx="160" cy="268" rx="148" ry="14" fill="none" stroke="#BA913E" strokeWidth="1" opacity="0.6" />
-        <ellipse cx="160" cy="268" rx="135" ry="10" fill="none" stroke="#F9F0DB" strokeWidth="0.5" opacity="0.3" />
+        <ellipse cx="160" cy="268" rx="148" ry="14" fill="none" stroke="var(--color-secondary)" strokeWidth="1" opacity="0.6" />
+        <ellipse cx="160" cy="268" rx="135" ry="10" fill="none" stroke="var(--color-text-main)" strokeWidth="0.5" opacity="0.3" />
         {/* Plate shine */}
-        <ellipse cx="120" cy="266" rx="40" ry="4" fill="#F9F0DB" opacity="0.15" />
+        <ellipse cx="120" cy="266" rx="40" ry="4" fill="var(--color-text-main)" opacity="0.15" />
 
         {/* ─── Layer 3 (bottom) ─── */}
         <rect x="28" y="218" width="264" height="52" rx="8" fill="url(#layer3)" />
@@ -313,21 +313,21 @@ function CakeSVG({ candles, smokeVisible, volume, micActive, candleAnimConfig })
         {/* Pearl beads along top border */}
         {Array.from({ length: 22 }).map((_, i) => {
           const x = 38 + i * (244 / 21)
-          return <circle key={`p3t-${i}`} cx={x} cy="221" r="1.8" fill="#E8B54D" opacity="0.55" />
+          return <circle key={`p3t-${i}`} cx={x} cy="221" r="1.8" fill="var(--color-secondary)" opacity="0.55" />
         })}
         {/* Pearl beads along bottom border */}
         {Array.from({ length: 22 }).map((_, i) => {
           const x = 38 + i * (244 / 21)
-          return <circle key={`p3b-${i}`} cx={x} cy="267" r="1.5" fill="#E8B54D" opacity="0.35" />
+          return <circle key={`p3b-${i}`} cx={x} cy="267" r="1.5" fill="var(--color-secondary)" opacity="0.35" />
         })}
         {/* Gold swag/drape decoration */}
         <path d="M 40 230 Q 70 248 100 230 Q 130 248 160 230 Q 190 248 220 230 Q 250 248 280 230"
-          fill="none" stroke="#E8B54D" strokeWidth="1.2" opacity="0.4" />
+          fill="none" stroke="var(--color-secondary)" strokeWidth="1.2" opacity="0.4" />
         <path d="M 40 232 Q 70 250 100 232 Q 130 250 160 232 Q 190 250 220 232 Q 250 250 280 232"
-          fill="none" stroke="#E8B54D" strokeWidth="0.6" opacity="0.2" />
+          fill="none" stroke="var(--color-secondary)" strokeWidth="0.6" opacity="0.2" />
         {/* Drape tassel dots */}
         {[70, 130, 190, 250].map(x => (
-          <circle key={`t3-${x}`} cx={x} cy="249" r="2" fill="#E8B54D" opacity="0.45" />
+          <circle key={`t3-${x}`} cx={x} cy="249" r="2" fill="var(--color-secondary)" opacity="0.45" />
         ))}
 
         {/* Frosting 3 */}
@@ -341,19 +341,19 @@ function CakeSVG({ candles, smokeVisible, volume, micActive, candleAnimConfig })
         {/* Pearl beads */}
         {Array.from({ length: 18 }).map((_, i) => {
           const x = 56 + i * (208 / 17)
-          return <circle key={`p2-${i}`} cx={x} cy="171" r="1.8" fill="#E8B54D" opacity="0.5" />
+          return <circle key={`p2-${i}`} cx={x} cy="171" r="1.8" fill="var(--color-secondary)" opacity="0.5" />
         })}
         {/* Gem-like center decorations */}
         {[88, 128, 160, 192, 232].map(x => (
           <g key={`gem2-${x}`}>
-            <circle cx={x} cy="192" r="5" fill="#E8B54D" opacity="0.5" />
-            <circle cx={x} cy="192" r="3" fill="#051937" opacity="0.5" />
-            <circle cx={x} cy="191" r="1.5" fill="#F9F0DB" opacity="0.5" />
+            <circle cx={x} cy="192" r="5" fill="var(--color-secondary)" opacity="0.5" />
+            <circle cx={x} cy="192" r="3" fill="var(--color-background)" opacity="0.5" />
+            <circle cx={x} cy="191" r="1.5" fill="var(--color-text-main)" opacity="0.5" />
           </g>
         ))}
         {/* Gold swag */}
         <path d="M 60 182 Q 88 198 116 182 Q 144 198 172 182 Q 200 198 228 182 Q 256 198 260 182"
-          fill="none" stroke="#E8B54D" strokeWidth="1" opacity="0.35" />
+          fill="none" stroke="var(--color-secondary)" strokeWidth="1" opacity="0.35" />
 
         {/* Frosting 2 */}
         <path d="M 48 170 Q 64 154 80 168 Q 96 154 112 168 Q 128 154 144 168 Q 160 154 176 168 Q 192 154 208 168 Q 224 154 240 168 Q 256 154 272 170 L 48 170 Z"
@@ -366,7 +366,7 @@ function CakeSVG({ candles, smokeVisible, volume, micActive, candleAnimConfig })
         {/* Pearl beads */}
         {Array.from({ length: 14 }).map((_, i) => {
           const x = 80 + i * (160 / 13)
-          return <circle key={`p1-${i}`} cx={x} cy="129" r="1.6" fill="#E8B54D" opacity="0.55" />
+          return <circle key={`p1-${i}`} cx={x} cy="129" r="1.6" fill="var(--color-secondary)" opacity="0.55" />
         })}
 
         {/* Frosting 1 */}
@@ -374,7 +374,7 @@ function CakeSVG({ candles, smokeVisible, volume, micActive, candleAnimConfig })
           fill="url(#frostingGrad)" />
 
         {/* Happy Birthday text */}
-        <text x="160" y="152" textAnchor="middle" fontSize="9" fontFamily="'Amiri', serif" fill="#F7FAFC" opacity="0.6">
+        <text x="160" y="152" textAnchor="middle" fontSize="9" fontFamily="'Amiri', serif" fill="var(--color-text-main)" opacity="0.6">
           Happy Birthday
         </text>
 
@@ -401,16 +401,16 @@ function CandleSVG({ x, lit, smokeVisible, volume, micActive, animConfig }) {
   return (
     <g>
       {/* Candle body — bright gold with stripe */}
-      <rect x={x - 5} y={candleY} width="10" height="40" rx="3" fill="#E8B54D" opacity="0.9" />
+      <rect x={x - 5} y={candleY} width="10" height="40" rx="3" fill="var(--color-secondary)" opacity="0.9" />
       {/* Candle stripe */}
-      <rect x={x - 5} y={candleY + 12} width="10" height="3" rx="1" fill="#BA913E" opacity="0.4" />
-      <rect x={x - 5} y={candleY + 24} width="10" height="3" rx="1" fill="#BA913E" opacity="0.4" />
+      <rect x={x - 5} y={candleY + 12} width="10" height="3" rx="1" fill="var(--color-secondary)" opacity="0.4" />
+      <rect x={x - 5} y={candleY + 24} width="10" height="3" rx="1" fill="var(--color-secondary)" opacity="0.4" />
       {/* Wax drip */}
       <path d={`M ${x - 4} ${candleY + 3} Q ${x - 6} ${candleY + 10} ${x - 4} ${candleY + 16}`}
-        fill="#F7FAFC" opacity="0.4" />
+        fill="var(--color-text-main)" opacity="0.4" />
 
       {/* Wick */}
-      <line x1={x} y1={candleY} x2={x} y2={candleY - 6} stroke="#051937" strokeWidth="1.5" />
+      <line x1={x} y1={candleY} x2={x} y2={candleY - 6} stroke="var(--color-background)" strokeWidth="1.5" />
 
       {/* Outer glow halo — golden transparent */}
       {lit && (
@@ -441,7 +441,7 @@ function CandleSVG({ x, lit, smokeVisible, volume, micActive, animConfig }) {
           {/* Inner core — bright white/yellow */}
           <path
             d={`M ${x} ${candleY - 22} C ${x-3} ${candleY-16} ${x-3} ${candleY-10} ${x} ${candleY-8} C ${x+3} ${candleY-10} ${x+3} ${candleY-16} ${x} ${candleY-22} Z`}
-            fill="#FFFEF5" opacity="0.95"
+            fill="var(--color-text-main)" opacity="0.95"
           />
         </g>
       )}
@@ -450,7 +450,7 @@ function CandleSVG({ x, lit, smokeVisible, volume, micActive, animConfig }) {
       {smokeVisible && !lit && (
         <g style={{ animation: 'smokeRise 2s ease-out forwards' }}>
           <path d={`M ${x} ${candleY-8} Q ${x+4} ${candleY-16} ${x} ${candleY-24} Q ${x-4} ${candleY-32} ${x} ${candleY-40}`}
-            stroke="#F7FAFC" strokeWidth="2" fill="none" opacity="0.45" strokeLinecap="round" />
+            stroke="var(--color-text-main)" strokeWidth="2" fill="none" opacity="0.45" strokeLinecap="round" />
         </g>
       )}
     </g>

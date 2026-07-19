@@ -8,10 +8,11 @@ import Toast from '../shared/Toast.jsx'
 const MAX_CHARS = 300
 const STORAGE_KEY = 'birthday_draft'
 
-export default function CreateForm({ onLinkCreated }) {
+export default function CreateForm({ onLinkCreated, onThemeChange }) {
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
   const [audioUrl, setAudioUrl] = useState('')
+  const [theme, setTheme] = useState('sapphire')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState({ visible: false, message: '' })
@@ -19,19 +20,24 @@ export default function CreateForm({ onLinkCreated }) {
   // Restore draft from localStorage
   useEffect(() => {
     try {
-      const draft = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
-      if (draft.name) setName(draft.name)
-      if (draft.message) setMessage(draft.message)
-      if (draft.audioUrl) setAudioUrl(draft.audioUrl)
+      const draft = localStorage.getItem(STORAGE_KEY)
+      if (draft) {
+        const { name, message, audioUrl, theme } = JSON.parse(draft)
+        if (name) setName(name)
+        if (message) setMessage(message)
+        if (audioUrl) setAudioUrl(audioUrl)
+        if (theme) setTheme(theme)
+      }
     } catch {}
   }, [])
 
-  // Auto-save draft
+  // Auto-save draft and update theme preview
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, message, audioUrl }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, message, audioUrl, theme }))
     } catch {}
-  }, [name, message, audioUrl])
+    if (onThemeChange) onThemeChange(theme)
+  }, [name, message, audioUrl, theme, onThemeChange])
 
   // Auto-detect audio type
   const detectedAudioType = useMemo(() => detectAudioType(audioUrl), [audioUrl])
@@ -65,6 +71,7 @@ export default function CreateForm({ onLinkCreated }) {
         message: message.trim(),
         audioUrl: audioUrl.trim() || null,
         audioType: audioUrl.trim() ? (detectedAudioType || 'direct') : null,
+        theme,
         createdAt: serverTimestamp(),
       })
 
@@ -102,13 +109,13 @@ export default function CreateForm({ onLinkCreated }) {
             autoComplete="off"
             className={[
               'w-full px-5 py-3.5 rounded-2xl',
-              'bg-primary-950/60 backdrop-blur-sm',
-              'border text-tertiary placeholder:text-tertiary/40',
+              'bg-surface backdrop-blur-sm',
+              'border text-textMain placeholder:text-textMain/40',
               'font-body text-base',
               'focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all duration-200',
               errors.name
                 ? 'border-red-500/60 focus:ring-red-500/30'
-                : 'border-primary-700/40 focus:border-secondary/60',
+                : 'border-muted focus:border-secondary/60',
             ].join(' ')}
           />
           {errors.name && (
@@ -135,13 +142,13 @@ export default function CreateForm({ onLinkCreated }) {
             maxLength={MAX_CHARS + 20}
             className={[
               'w-full px-5 py-3.5 rounded-2xl resize-none',
-              'bg-primary-950/60 backdrop-blur-sm',
-              'border text-tertiary placeholder:text-tertiary/40',
+              'bg-surface backdrop-blur-sm',
+              'border text-textMain placeholder:text-textMain/40',
               'font-body text-base leading-relaxed',
               'focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all duration-200',
               errors.message
                 ? 'border-red-500/60 focus:ring-red-500/30'
-                : 'border-primary-700/40 focus:border-secondary/60',
+                : 'border-muted focus:border-secondary/60',
             ].join(' ')}
           />
           {errors.message && (
@@ -163,31 +170,64 @@ export default function CreateForm({ onLinkCreated }) {
             dir="ltr"
             className={[
               'w-full px-5 py-3.5 rounded-2xl',
-              'bg-primary-950/60 backdrop-blur-sm',
-              'border text-tertiary placeholder:text-tertiary/40',
+              'bg-surface backdrop-blur-sm',
+              'border text-textMain placeholder:text-textMain/40',
               'font-label text-sm',
               'focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all duration-200',
               errors.audioUrl
                 ? 'border-red-500/60 focus:ring-red-500/30'
-                : 'border-primary-700/40 focus:border-secondary/60',
+                : 'border-muted focus:border-secondary/60',
             ].join(' ')}
           />
           {errors.audioUrl && (
             <p role="alert" className="mt-1.5 text-xs text-red-400 font-label">{errors.audioUrl}</p>
           )}
           {detectedAudioType === 'youtube' && (
-            <div className="mt-2 p-3 rounded-xl bg-primary-900/50 border border-secondary/20">
+            <div className="mt-2 p-3 rounded-xl bg-surface border border-secondary/20">
               <p className="text-xs text-secondary/80 font-label mb-1">🎵 تم اكتشاف رابط يوتيوب</p>
-              <p className="text-xs text-tertiary/50 font-label leading-relaxed">
+              <p className="text-xs text-textMain/60 font-label leading-relaxed">
                 سيتم تشغيل الصوت فقط من الفيديو، دون عرضه. يعتمد هذا على تضمين يوتيوب الرسمي.
               </p>
             </div>
           )}
           {!detectedAudioType || detectedAudioType === 'direct' ? (
-            <p className="mt-2 text-xs text-tertiary/40 font-label">
+            <p className="mt-2 text-xs text-textMain/50 font-label">
               رابط مباشر لملف MP3 أو رابط يوتيوب — سيُشغَّل عند فتح الظرف
             </p>
           ) : null}
+        </div>
+
+        {/* Theme selection */}
+        <div>
+          <label className="block text-sm font-semibold text-secondary mb-3 font-label">
+            🎨 اختر شكل التهنئة
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setTheme('sapphire')}
+              className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200 ${
+                theme === 'sapphire'
+                  ? 'bg-surface/80 border-secondary ring-1 ring-secondary/50'
+                  : 'bg-surface/40 border-muted hover:bg-surface/60'
+              }`}
+            >
+              <div className="w-6 h-6 rounded-full shrink-0 shadow-inner" style={{ backgroundColor: '#0F52BA' }} />
+              <span className="text-sm font-label text-textMain">الثيم الكلاسيكي</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme('rose')}
+              className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200 ${
+                theme === 'rose'
+                  ? 'bg-surface/80 border-secondary ring-1 ring-secondary/50'
+                  : 'bg-surface/40 border-muted hover:bg-surface/60'
+              }`}
+            >
+              <div className="w-6 h-6 rounded-full shrink-0 shadow-inner" style={{ backgroundColor: '#F66C89' }} />
+              <span className="text-sm font-label text-textMain">ثيم وردي</span>
+            </button>
+          </div>
         </div>
 
         {/* Submit */}

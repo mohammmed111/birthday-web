@@ -35,9 +35,9 @@ export default function Toast({ message, icon = '✓', visible, onHide, duration
         'fixed bottom-6 inset-x-0 mx-auto w-fit z-50',
         'flex items-center gap-3',
         'px-5 py-3 rounded-2xl',
-        'bg-primary-900/90 border border-secondary/40',
-        'text-tertiary font-label text-sm font-medium',
-        'backdrop-blur-md shadow-2xl shadow-neutral-950/60',
+        'bg-surface/90 border border-secondary/40',
+        'text-textMain font-label text-sm font-medium',
+        'backdrop-blur-md shadow-2xl shadow-background/60',
         phase === 'enter' || phase === 'visible' ? 'toast-enter' : 'toast-exit',
       ].join(' ')}
     >
