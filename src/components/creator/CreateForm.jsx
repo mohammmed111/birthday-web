@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../firebase.js'
+import { detectAudioType } from '../../utils/audioUtils.js'
 import Button from '../shared/Button.jsx'
 import Toast from '../shared/Toast.jsx'
 
@@ -32,6 +33,9 @@ export default function CreateForm({ onLinkCreated }) {
     } catch {}
   }, [name, message, audioUrl])
 
+  // Auto-detect audio type
+  const detectedAudioType = useMemo(() => detectAudioType(audioUrl), [audioUrl])
+
   function validate() {
     const errs = {}
     if (!name.trim()) errs.name = 'اسم صاحب/ة العيد مطلوب'
@@ -60,6 +64,7 @@ export default function CreateForm({ onLinkCreated }) {
         name: name.trim(),
         message: message.trim(),
         audioUrl: audioUrl.trim() || null,
+        audioType: audioUrl.trim() ? (detectedAudioType || 'direct') : null,
         createdAt: serverTimestamp(),
       })
 
@@ -147,14 +152,14 @@ export default function CreateForm({ onLinkCreated }) {
         {/* Audio URL field */}
         <div>
           <label htmlFor="birthday-audio" className="block text-sm font-semibold text-secondary mb-2 font-label">
-            🎵 رابط ملف موسيقى <span className="text-tertiary/50 font-normal">(اختياري)</span>
+            🎵 رابط موسيقى أو يوتيوب <span className="text-tertiary/50 font-normal">(اختياري)</span>
           </label>
           <input
             id="birthday-audio"
             type="url"
             value={audioUrl}
             onChange={e => setAudioUrl(e.target.value)}
-            placeholder="https://example.com/happy-birthday.mp3"
+            placeholder="رابط ملف صوتي أو رابط يوتيوب"
             dir="ltr"
             className={[
               'w-full px-5 py-3.5 rounded-2xl',
@@ -170,9 +175,19 @@ export default function CreateForm({ onLinkCreated }) {
           {errors.audioUrl && (
             <p role="alert" className="mt-1.5 text-xs text-red-400 font-label">{errors.audioUrl}</p>
           )}
-          <p className="mt-2 text-xs text-tertiary/40 font-label">
-            رابط مباشر لملف MP3 أو OGG — سيُشغَّل عند فتح الظرف
-          </p>
+          {detectedAudioType === 'youtube' && (
+            <div className="mt-2 p-3 rounded-xl bg-primary-900/50 border border-secondary/20">
+              <p className="text-xs text-secondary/80 font-label mb-1">🎵 تم اكتشاف رابط يوتيوب</p>
+              <p className="text-xs text-tertiary/50 font-label leading-relaxed">
+                سيتم تشغيل الصوت فقط من الفيديو، دون عرضه. يعتمد هذا على تضمين يوتيوب الرسمي.
+              </p>
+            </div>
+          )}
+          {!detectedAudioType || detectedAudioType === 'direct' ? (
+            <p className="mt-2 text-xs text-tertiary/40 font-label">
+              رابط مباشر لملف MP3 أو رابط يوتيوب — سيُشغَّل عند فتح الظرف
+            </p>
+          ) : null}
         </div>
 
         {/* Submit */}

@@ -1,20 +1,31 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { startBlowDetection, stopBlowDetection } from '../../utils/audioDetect.js'
 import Button from '../shared/Button.jsx'
 
 const NUM_CANDLES = 5
+const FLICKER_ANIMATIONS = ['flicker', 'flicker-2', 'flicker-3']
 
 export default function InteractiveCake({ name, onAllExtinguished }) {
   const [candles, setCandles] = useState(Array(NUM_CANDLES).fill(true))
-  const [micState, setMicState] = useState('idle')
+  const [micState, setMicState] = useState('idle') // idle | requesting | calibrating | active | denied | unavailable
   const [volume, setVolume] = useState(0)
+  const [energy, setEnergy] = useState(0)
   const [showFallback, setShowFallback] = useState(false)
   const [allOut, setAllOut] = useState(false)
   const [smokeVisible, setSmokeVisible] = useState(Array(NUM_CANDLES).fill(false))
   const fallbackTimerRef = useRef(null)
 
   const anyLit = candles.some(Boolean)
+
+  // Random per-candle animation config (stable across renders)
+  const candleAnimConfig = useMemo(() =>
+    Array.from({ length: NUM_CANDLES }, () => ({
+      animation: FLICKER_ANIMATIONS[Math.floor(Math.random() * FLICKER_ANIMATIONS.length)],
+      duration: 1.2 + Math.random() * 1.0,
+      delay: Math.random() * 0.8,
+    }))
+  , [])
 
   useEffect(() => {
     fallbackTimerRef.current = setTimeout(() => setShowFallback(true), 6000)
@@ -31,36 +42,34 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
   }, [candles, anyLit, allOut, onAllExtinguished])
 
   function extinguishCandle(index) {
+    setCandles(prev => {
+      if (!prev[index]) return prev
+      const next = [...prev]
+      next[index] = false
+      return next
+    })
     setSmokeVisible(prev => { const n = [...prev]; n[index] = true; return n })
     setTimeout(() => setSmokeVisible(prev => { const n = [...prev]; n[index] = false; return n }), 2000)
-    setCandles(prev => { const n = [...prev]; n[index] = false; return n })
     playPop()
   }
 
-  const handleBlow = useCallback(() => {
-    setCandles(prev => {
-      const litIndices = prev.map((lit, i) => lit ? i : -1).filter(i => i >= 0)
-      if (litIndices.length === 0) return prev
-      const target = litIndices[Math.floor(Math.random() * litIndices.length)]
-      const next = [...prev]
-      next[target] = false
-      setSmokeVisible(s => { const n = [...s]; n[target] = true; return n })
-      setTimeout(() => setSmokeVisible(s => { const n = [...s]; n[target] = false; return n }), 2000)
-      playPop()
-      setTimeout(() => { if (next.some(Boolean)) startDetection() }, 600)
-      return next
-    })
+  // Called by audioDetect when a candle should go out
+  const handleCandleOut = useCallback((index) => {
+    extinguishCandle(index)
   }, [])
 
   function startDetection() {
-    setMicState('active')
+    setMicState('calibrating')
     startBlowDetection({
-      onBlow: handleBlow,
+      candleCount: NUM_CANDLES,
+      onCandleOut: handleCandleOut,
+      onVolume: (v) => setVolume(v),
+      onEnergy: (e) => setEnergy(e),
+      onCalibrationDone: () => setMicState('active'),
       onError: (err) => {
         setMicState(err.name === 'NotAllowedError' ? 'denied' : 'unavailable')
         setShowFallback(true)
       },
-      onVolume: (v) => setVolume(v),
     })
   }
 
@@ -69,12 +78,12 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
     startDetection()
   }
 
-  function extinguishAll() {
-    stopBlowDetection()
-    const indices = candles.map((lit, i) => lit ? i : -1).filter(i => i >= 0)
-    indices.forEach((idx, delay) => {
-      setTimeout(() => extinguishCandle(idx), delay * 260)
-    })
+  // Fallback: one candle per click
+  function extinguishOneManually() {
+    const litIndex = candles.findIndex(Boolean)
+    if (litIndex >= 0) {
+      extinguishCandle(litIndex)
+    }
   }
 
   function playPop() {
@@ -123,7 +132,9 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
           <span className="text-secondary">{name}</span> 🎂
         </h2>
         <p className="mt-2 text-tertiary/60 font-body text-sm">
-          {micState === 'active'
+          {micState === 'calibrating'
+            ? '🔊 جاري معايرة الصوت... انتظر لحظة'
+            : micState === 'active'
             ? '🎤 انفخ في الميكروفون لإطفاء الشموع!'
             : micState === 'denied'
             ? '🔇 تم رفض إذن الميكروفون'
@@ -136,20 +147,28 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2, ease: [0.34,1.56,0.64,1] }}
       >
-        <CakeSVG candles={candles} smokeVisible={smokeVisible} volume={volume} micActive={micState === 'active'} />
+        <CakeSVG
+          candles={candles}
+          smokeVisible={smokeVisible}
+          volume={volume}
+          micActive={micState === 'active'}
+          candleAnimConfig={candleAnimConfig}
+        />
       </motion.div>
 
-      {/* Volume meter */}
+      {/* Volume / Energy meter */}
       <AnimatePresence>
-        {micState === 'active' && (
+        {(micState === 'active' || micState === 'calibrating') && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-6 w-48 space-y-2"
+            className="mt-6 w-56 space-y-2"
           >
-            <p className="text-xs text-tertiary/50 font-label">قوة النفخ</p>
-            <div className="h-2 rounded-full overflow-hidden" style={{ background: '#020B19' }}>
+            <p className="text-xs text-tertiary/50 font-label">
+              {micState === 'calibrating' ? 'معايرة...' : 'قوة النفخ'}
+            </p>
+            <div className="h-2.5 rounded-full overflow-hidden" style={{ background: '#020B19' }}>
               <div
                 className="h-full rounded-full transition-all duration-75"
                 style={{
@@ -158,6 +177,17 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
                 }}
               />
             </div>
+            {micState === 'active' && (
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#020B19' }}>
+                <div
+                  className="h-full rounded-full transition-all duration-150"
+                  style={{
+                    width: `${Math.min(energy * 100, 100)}%`,
+                    background: 'linear-gradient(to right, #BA913E, #E8B54D, #F9F0DB)',
+                  }}
+                />
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -173,7 +203,7 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
           >
             <div className="gradient-border rounded-2xl p-4 text-sm text-tertiary/70 font-label">
               <p className="text-secondary font-semibold mb-1">🎤 كيف يعمل؟</p>
-              <p>سنستخدم الميكروفون فقط للكشف عن صوت نفخك — لا يُسجَّل أي شيء.</p>
+              <p>انفخ في الميكروفون — كلما كانت نفختك أقوى، زاد عدد الشموع المنطفئة!</p>
             </div>
             <Button variant="primary" size="md" className="w-full" onClick={requestMic}
               aria-label="السماح بالميكروفون لإطفاء الشموع" icon={<span>🎤</span>}>
@@ -188,6 +218,12 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
           </p>
         )}
 
+        {micState === 'calibrating' && (
+          <p className="text-secondary/70 text-sm font-label animate-pulse">
+            🔊 جاري قياس مستوى الصوت المحيط...
+          </p>
+        )}
+
         {micState === 'active' && (
           <p className="text-secondary text-sm font-label">
             ✅ الميكروفون نشط — انفخ على الشموع!
@@ -197,9 +233,9 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
         <AnimatePresence>
           {(showFallback || micState === 'denied' || micState === 'unavailable') && anyLit && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <Button variant="outlined" size="md" className="w-full" onClick={extinguishAll}
-                aria-label="اضغط لإطفاء الشموع" icon={<span>💨</span>}>
-                اضغط لإطفاء الشموع
+              <Button variant="outlined" size="md" className="w-full" onClick={extinguishOneManually}
+                aria-label="اضغط لإطفاء شمعة" icon={<span>💨</span>}>
+                اضغط لإطفاء شمعة
               </Button>
             </motion.div>
           )}
@@ -209,43 +245,42 @@ export default function InteractiveCake({ name, onAllExtinguished }) {
   )
 }
 
-/* ─── Cake SVG — Sapphire & Gold ───────────────────────────────────── */
-function CakeSVG({ candles, smokeVisible, volume, micActive }) {
-  const candlePositions = [56, 104, 152, 200, 248]
+/* ─── Luxury Cake SVG — Sapphire & Gold with ornate decorations ──── */
+function CakeSVG({ candles, smokeVisible, volume, micActive, candleAnimConfig }) {
+  const candlePositions = [72, 116, 160, 204, 248]
 
   return (
     <div className="relative">
-      <svg viewBox="0 0 320 280" width="320" height="280"
+      <svg viewBox="0 0 320 300" width="320" height="300"
         xmlns="http://www.w3.org/2000/svg" aria-label="كيك عيد الميلاد" className="drop-shadow-2xl">
         <defs>
-          {/* Cake layer gradients — deep sapphire */}
+          {/* Cake layer gradients */}
           <linearGradient id="layer1" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#093170" />
+            <stop offset="0%"   stopColor="#0D3A7A" />
             <stop offset="100%" stopColor="#0F52BA" />
           </linearGradient>
           <linearGradient id="layer2" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#06214A" />
-            <stop offset="100%" stopColor="#0F52BA" />
+            <stop offset="0%"   stopColor="#082B5E" />
+            <stop offset="100%" stopColor="#0D3A7A" />
           </linearGradient>
           <linearGradient id="layer3" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stopColor="#0F52BA" />
-            <stop offset="100%" stopColor="#031025" />
+            <stop offset="100%" stopColor="#051937" />
           </linearGradient>
-          {/* Frosting — cool ivory */}
+          {/* Frosting gradient */}
           <linearGradient id="frostingGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stopColor="#F7FAFC" />
             <stop offset="100%" stopColor="#EBF2F8" />
           </linearGradient>
-          {/* Flame */}
-          <linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="1">
+          {/* Flame gradients */}
+          <linearGradient id="flameOuter" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stopColor="#FFFFFF" />
-            <stop offset="40%"  stopColor="#F9F0DB" />
-            <stop offset="80%"  stopColor="#E8B54D" />
+            <stop offset="35%"  stopColor="#FFF5D4" />
+            <stop offset="70%"  stopColor="#E8B54D" />
             <stop offset="100%" stopColor="#BA913E" />
           </linearGradient>
-          {/* Candle glow */}
-          <radialGradient id="glowGrad" cx="50%" cy="70%">
-            <stop offset="0%"   stopColor="#F9F0DB" stopOpacity="0.9" />
+          <radialGradient id="flameGlow" cx="50%" cy="50%">
+            <stop offset="0%"   stopColor="#E8B54D" stopOpacity="0.6" />
             <stop offset="100%" stopColor="#E8B54D" stopOpacity="0" />
           </radialGradient>
           {/* Gold trim gradient */}
@@ -254,101 +289,159 @@ function CakeSVG({ candles, smokeVisible, volume, micActive }) {
             <stop offset="50%"  stopColor="#F9F0DB" />
             <stop offset="100%" stopColor="#BA913E" />
           </linearGradient>
+          {/* Gold plate gradient */}
+          <linearGradient id="goldPlate" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#E8B54D" />
+            <stop offset="50%"  stopColor="#F9F0DB" />
+            <stop offset="100%" stopColor="#C6912E" />
+          </linearGradient>
         </defs>
 
-        {/* Plate shadow */}
-        <ellipse cx="160" cy="262" rx="140" ry="10" fill="#E8B54D" opacity="0.2" />
+        {/* ─── Gold Plate / Base ─── */}
+        <ellipse cx="160" cy="268" rx="148" ry="14" fill="url(#goldPlate)" />
+        <ellipse cx="160" cy="268" rx="148" ry="14" fill="none" stroke="#BA913E" strokeWidth="1" opacity="0.6" />
+        <ellipse cx="160" cy="268" rx="135" ry="10" fill="none" stroke="#F9F0DB" strokeWidth="0.5" opacity="0.3" />
+        {/* Plate shine */}
+        <ellipse cx="120" cy="266" rx="40" ry="4" fill="#F9F0DB" opacity="0.15" />
 
         {/* ─── Layer 3 (bottom) ─── */}
-        <rect x="30" y="210" width="260" height="50" rx="8" fill="url(#layer3)" />
-        <rect x="30" y="210" width="260" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.8" />
-        <rect x="30" y="257" width="260" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.5" />
-        {[60,90,120,150,180,210,240].map(x => (
-          <circle key={x} cx={x} cy="233" r="3" fill="#E8B54D" opacity="0.35" />
+        <rect x="28" y="218" width="264" height="52" rx="8" fill="url(#layer3)" />
+        {/* Gold trim top */}
+        <rect x="28" y="218" width="264" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.85" />
+        {/* Gold trim bottom */}
+        <rect x="28" y="267" width="264" height="2.5" rx="1.2" fill="url(#goldTrim)" opacity="0.5" />
+        {/* Pearl beads along top border */}
+        {Array.from({ length: 22 }).map((_, i) => {
+          const x = 38 + i * (244 / 21)
+          return <circle key={`p3t-${i}`} cx={x} cy="221" r="1.8" fill="#E8B54D" opacity="0.55" />
+        })}
+        {/* Pearl beads along bottom border */}
+        {Array.from({ length: 22 }).map((_, i) => {
+          const x = 38 + i * (244 / 21)
+          return <circle key={`p3b-${i}`} cx={x} cy="267" r="1.5" fill="#E8B54D" opacity="0.35" />
+        })}
+        {/* Gold swag/drape decoration */}
+        <path d="M 40 230 Q 70 248 100 230 Q 130 248 160 230 Q 190 248 220 230 Q 250 248 280 230"
+          fill="none" stroke="#E8B54D" strokeWidth="1.2" opacity="0.4" />
+        <path d="M 40 232 Q 70 250 100 232 Q 130 250 160 232 Q 190 250 220 232 Q 250 250 280 232"
+          fill="none" stroke="#E8B54D" strokeWidth="0.6" opacity="0.2" />
+        {/* Drape tassel dots */}
+        {[70, 130, 190, 250].map(x => (
+          <circle key={`t3-${x}`} cx={x} cy="249" r="2" fill="#E8B54D" opacity="0.45" />
         ))}
 
         {/* Frosting 3 */}
-        <path d="M 30 210 Q 50 195 70 208 Q 90 195 110 208 Q 130 195 150 208 Q 170 195 190 208 Q 210 195 230 208 Q 250 195 270 208 Q 290 195 290 210 L 30 210 Z"
+        <path d="M 28 218 Q 45 200 62 216 Q 79 200 96 216 Q 113 200 130 216 Q 147 200 164 216 Q 181 200 198 216 Q 215 200 232 216 Q 249 200 266 216 Q 283 200 292 218 L 28 218 Z"
           fill="url(#frostingGrad)" />
 
-        {/* ─── Layer 2 ─── */}
-        <rect x="50" y="160" width="220" height="54" rx="8" fill="url(#layer2)" />
-        <rect x="50" y="160" width="220" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.7" />
-        <rect x="50" y="210" width="220" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.5" />
-        {[80,120,160,200,240].map(x => (
-          <g key={x}>
-            <circle cx={x} cy="183" r="5" fill="#E8B54D" opacity="0.45" />
-            <circle cx={x} cy="183" r="2.5" fill="#051937" opacity="0.5" />
+        {/* ─── Layer 2 (middle) ─── */}
+        <rect x="48" y="168" width="224" height="54" rx="8" fill="url(#layer2)" />
+        <rect x="48" y="168" width="224" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.8" />
+        <rect x="48" y="218" width="224" height="2.5" rx="1.2" fill="url(#goldTrim)" opacity="0.5" />
+        {/* Pearl beads */}
+        {Array.from({ length: 18 }).map((_, i) => {
+          const x = 56 + i * (208 / 17)
+          return <circle key={`p2-${i}`} cx={x} cy="171" r="1.8" fill="#E8B54D" opacity="0.5" />
+        })}
+        {/* Gem-like center decorations */}
+        {[88, 128, 160, 192, 232].map(x => (
+          <g key={`gem2-${x}`}>
+            <circle cx={x} cy="192" r="5" fill="#E8B54D" opacity="0.5" />
+            <circle cx={x} cy="192" r="3" fill="#051937" opacity="0.5" />
+            <circle cx={x} cy="191" r="1.5" fill="#F9F0DB" opacity="0.5" />
           </g>
         ))}
+        {/* Gold swag */}
+        <path d="M 60 182 Q 88 198 116 182 Q 144 198 172 182 Q 200 198 228 182 Q 256 198 260 182"
+          fill="none" stroke="#E8B54D" strokeWidth="1" opacity="0.35" />
 
         {/* Frosting 2 */}
-        <path d="M 50 162 Q 70 148 90 160 Q 110 148 130 160 Q 150 148 170 160 Q 190 148 210 160 Q 230 148 250 160 Q 270 148 270 162 L 50 162 Z"
+        <path d="M 48 170 Q 64 154 80 168 Q 96 154 112 168 Q 128 154 144 168 Q 160 154 176 168 Q 192 154 208 168 Q 224 154 240 168 Q 256 154 272 170 L 48 170 Z"
           fill="url(#frostingGrad)" />
 
         {/* ─── Layer 1 (top) ─── */}
-        <rect x="75" y="118" width="170" height="46" rx="8" fill="url(#layer1)" />
-        <rect x="75" y="118" width="170" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.8" />
-        <rect x="75" y="160" width="170" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.5" />
+        <rect x="73" y="126" width="174" height="46" rx="8" fill="url(#layer1)" />
+        <rect x="73" y="126" width="174" height="3" rx="1.5" fill="url(#goldTrim)" opacity="0.85" />
+        <rect x="73" y="168" width="174" height="2.5" rx="1.2" fill="url(#goldTrim)" opacity="0.5" />
+        {/* Pearl beads */}
+        {Array.from({ length: 14 }).map((_, i) => {
+          const x = 80 + i * (160 / 13)
+          return <circle key={`p1-${i}`} cx={x} cy="129" r="1.6" fill="#E8B54D" opacity="0.55" />
+        })}
 
         {/* Frosting 1 */}
-        <path d="M 75 120 Q 92 106 109 118 Q 126 106 143 118 Q 160 106 177 118 Q 194 106 211 118 Q 228 106 245 120 L 75 120 Z"
+        <path d="M 73 128 Q 89 112 105 126 Q 121 112 137 126 Q 153 112 169 126 Q 185 112 201 126 Q 217 112 233 126 Q 247 112 247 128 L 73 128 Z"
           fill="url(#frostingGrad)" />
 
         {/* Happy Birthday text */}
-        <text x="160" y="143" textAnchor="middle" fontSize="9" fontFamily="serif" fill="#F7FAFC" opacity="0.7">
+        <text x="160" y="152" textAnchor="middle" fontSize="9" fontFamily="'Amiri', serif" fill="#F7FAFC" opacity="0.6">
           Happy Birthday
         </text>
 
         {/* ─── Candles ─── */}
         {candlePositions.map((x, i) => (
-          <CandleSVG key={i} x={x} lit={candles[i]} smokeVisible={smokeVisible[i]}
-            volume={volume} micActive={micActive} />
+          <CandleSVG
+            key={i}
+            x={x}
+            lit={candles[i]}
+            smokeVisible={smokeVisible[i]}
+            volume={volume}
+            micActive={micActive}
+            animConfig={candleAnimConfig[i]}
+          />
         ))}
       </svg>
     </div>
   )
 }
 
-function CandleSVG({ x, lit, smokeVisible, volume, micActive }) {
-  const candleY = 78
+function CandleSVG({ x, lit, smokeVisible, volume, micActive, animConfig }) {
+  const candleY = 86
 
   return (
     <g>
-      {/* Candle body — bright gold */}
+      {/* Candle body — bright gold with stripe */}
       <rect x={x - 5} y={candleY} width="10" height="40" rx="3" fill="#E8B54D" opacity="0.9" />
+      {/* Candle stripe */}
+      <rect x={x - 5} y={candleY + 12} width="10" height="3" rx="1" fill="#BA913E" opacity="0.4" />
+      <rect x={x - 5} y={candleY + 24} width="10" height="3" rx="1" fill="#BA913E" opacity="0.4" />
       {/* Wax drip */}
-      <path d={`M ${x - 5} ${candleY + 5} Q ${x - 3} ${candleY + 9} ${x - 5} ${candleY + 13}`}
-        fill="#F7FAFC" opacity="0.45" />
+      <path d={`M ${x - 4} ${candleY + 3} Q ${x - 6} ${candleY + 10} ${x - 4} ${candleY + 16}`}
+        fill="#F7FAFC" opacity="0.4" />
 
       {/* Wick */}
       <line x1={x} y1={candleY} x2={x} y2={candleY - 6} stroke="#051937" strokeWidth="1.5" />
 
-      {/* Glow */}
+      {/* Outer glow halo — golden transparent */}
       {lit && (
-        <ellipse cx={x} cy={candleY - 18} rx="13" ry="15" fill="url(#glowGrad)" className="candle-glow" />
+        <ellipse cx={x} cy={candleY - 18} rx="16" ry="18" fill="url(#flameGlow)"
+          style={{
+            animation: `${animConfig.animation} ${animConfig.duration}s ease-in-out infinite`,
+            animationDelay: `${animConfig.delay}s`,
+          }}
+        />
       )}
 
-      {/* Flame */}
+      {/* Flame — extinguish animation when going out */}
       {lit && (
         <g
-          className="candle-glow"
           style={{
             transformOrigin: `${x}px ${candleY - 6}px`,
             animation: micActive && volume > 0.3
-              ? 'flicker 0.3s ease-in-out infinite'
-              : 'flicker 1.5s ease-in-out infinite',
+              ? `${animConfig.animation} 0.3s ease-in-out infinite`
+              : `${animConfig.animation} ${animConfig.duration}s ease-in-out infinite`,
+            animationDelay: `${animConfig.delay}s`,
           }}
         >
           {/* Outer flame */}
           <path
             d={`M ${x} ${candleY - 28} C ${x-7} ${candleY-20} ${x-6} ${candleY-10} ${x} ${candleY-6} C ${x+6} ${candleY-10} ${x+7} ${candleY-20} ${x} ${candleY-28} Z`}
-            fill="url(#flameGrad)" opacity="0.95"
+            fill="url(#flameOuter)" opacity="0.95"
           />
-          {/* Inner core — ivory white */}
+          {/* Inner core — bright white/yellow */}
           <path
             d={`M ${x} ${candleY - 22} C ${x-3} ${candleY-16} ${x-3} ${candleY-10} ${x} ${candleY-8} C ${x+3} ${candleY-10} ${x+3} ${candleY-16} ${x} ${candleY-22} Z`}
-            fill="#FFFFFF" opacity="0.92"
+            fill="#FFFEF5" opacity="0.95"
           />
         </g>
       )}

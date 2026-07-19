@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase.js'
@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Envelope from '../components/receiver/Envelope.jsx'
 import InteractiveCake from '../components/receiver/InteractiveCake.jsx'
 import MessageReveal from '../components/receiver/MessageReveal.jsx'
+import YouTubePlayer from '../components/receiver/YouTubePlayer.jsx'
+import { extractYouTubeId } from '../utils/audioUtils.js'
 
 const stages = ['envelope', 'cake', 'message']
 
@@ -14,6 +16,15 @@ export default function ReceiverPage() {
   const [stage, setStage] = useState('envelope')
   const [birthdayData, setBirthdayData] = useState(null)
   const [status, setStatus] = useState('loading') // loading | success | error | notfound
+
+  // Global Audio State
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
+  const audioRef = useRef(null)
+
+  const audioUrl = birthdayData?.audioUrl || null
+  const audioType = birthdayData?.audioType || null
+  const isYouTube = audioType === 'youtube'
+  const youtubeId = isYouTube && audioUrl ? extractYouTubeId(audioUrl) : null
 
   // Fetch birthday document from Firestore
   useEffect(() => {
@@ -41,6 +52,14 @@ export default function ReceiverPage() {
 
     fetchBirthday()
   }, [id])
+
+  // Handle audio playback
+  useEffect(() => {
+    if (isAudioPlaying && !isYouTube && audioUrl && audioRef.current) {
+      audioRef.current.volume = 0.7
+      audioRef.current.play().catch(err => console.warn('Audio play failed:', err))
+    }
+  }, [isAudioPlaying, isYouTube, audioUrl])
 
   // Shared background
   const bg = (
@@ -136,11 +155,20 @@ export default function ReceiverPage() {
   }
 
   // ─── Success State — The Experience ──────────────────────────────────
-  const { name, message, audioUrl } = birthdayData
+  const { name, message } = birthdayData
 
   return (
     <div className="min-h-screen relative overflow-hidden">
       {bg}
+
+      {/* Global Audio Players */}
+      {!isYouTube && audioUrl && (
+        <audio ref={audioRef} src={audioUrl} loop preload="auto" aria-hidden="true" />
+      )}
+      {isYouTube && youtubeId && isAudioPlaying && (
+        <YouTubePlayer videoId={youtubeId} autoPlay={true} loop={true} />
+      )}
+
       <div className="relative z-10">
         <AnimatePresence mode="wait">
           {stage === 'envelope' && (
@@ -153,8 +181,8 @@ export default function ReceiverPage() {
             >
               <Envelope
                 name={name}
-                audioUrl={audioUrl}
                 onOpen={() => setStage('cake')}
+                onStartAudio={() => setIsAudioPlaying(true)}
               />
             </motion.div>
           )}

@@ -1,6 +1,9 @@
 /**
- * Web Audio API blow detection utility
- * Uses RMS energy analysis to detect blowing sound
+ * Web Audio API blow detection — energy-accumulation model.
+ *
+ * Instead of "one blow → all candles out", blow energy accumulates
+ * over time proportional to sound intensity above the ambient baseline.
+ * Each candle has an energy threshold; when blowEnergy exceeds it, that candle goes out.
  */
 
 let audioContext = null
@@ -8,19 +11,30 @@ let analyser = null
 let microphone = null
 let stream = null
 let animationId = null
-let detectionInterval = null
 
-const BLOW_THRESHOLD = 0.035   // RMS threshold for blow detection
-const CONFIRM_DURATION = 350   // ms of sustained blow to confirm
+const THRESHOLD_ABOVE_BASELINE = 0.018  // RMS above baseline to count as blowing
+const CALIBRATION_DURATION = 1000        // ms to measure ambient noise
+const MAX_ENERGY = 1.0                   // total energy to extinguish all candles
 
 /**
- * Start microphone blow detection
- * @param {Function} onBlow - Called when a blow is confirmed
- * @param {Function} onError - Called when mic access fails
- * @param {Function} onVolume - Called each frame with current volume (0-1)
- * @returns {Promise<void>}
+ * Start energy-based blow detection.
+ *
+ * @param {Object} opts
+ * @param {number}   opts.candleCount        - Number of candles
+ * @param {Function} opts.onCandleOut(index) - Called when candle at index should extinguish
+ * @param {Function} opts.onVolume(v)        - Called each frame with normalised volume 0–1
+ * @param {Function} opts.onCalibrationDone  - Called when baseline calibration finishes
+ * @param {Function} opts.onError(err)       - Called if mic access fails
+ * @param {Function} opts.onEnergy(e)        - Called each frame with current blowEnergy 0–MAX
  */
-export async function startBlowDetection({ onBlow, onError, onVolume }) {
+export async function startBlowDetection({
+  candleCount = 5,
+  onCandleOut,
+  onVolume,
+  onCalibrationDone,
+  onError,
+  onEnergy,
+}) {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
     audioContext = new (window.AudioContext || window.webkitAudioContext)()
@@ -34,36 +48,84 @@ export async function startBlowDetection({ onBlow, onError, onVolume }) {
     const bufferLength = analyser.frequencyBinCount
     const dataArray = new Uint8Array(bufferLength)
 
-    let blowStartTime = null
-    let blowDetected = false
+    // ── Build candle thresholds with random jitter ──
+    const candles = []
+    for (let i = 0; i < candleCount; i++) {
+      const jitter = (Math.random() - 0.5) * 0.08 * (MAX_ENERGY / candleCount)
+      candles.push({
+        index: i,
+        extinguishAt: (i + 1) * (MAX_ENERGY / candleCount) + jitter,
+        extinguished: false,
+      })
+    }
+    // Sort by extinguishAt so lower thresholds fire first
+    candles.sort((a, b) => a.extinguishAt - b.extinguishAt)
 
-    function analyse() {
+    let blowEnergy = 0
+    let baseline = 0
+    let calibrating = true
+    let calibrationSamples = []
+    let calibrationStart = performance.now()
+    let lastFrameTime = null
+
+    function getRMS() {
+      analyser.getByteTimeDomainData(dataArray)
+      let sum = 0
+      for (let i = 0; i < bufferLength; i++) {
+        const v = (dataArray[i] - 128) / 128
+        sum += v * v
+      }
+      return Math.sqrt(sum / bufferLength)
+    }
+
+    function analyse(now) {
       if (!analyser) return
 
-      analyser.getByteTimeDomainData(dataArray)
+      const rms = getRMS()
 
-      // Calculate RMS (Root Mean Square) energy
-      let sumSquares = 0
-      for (let i = 0; i < bufferLength; i++) {
-        const normalized = (dataArray[i] - 128) / 128
-        sumSquares += normalized * normalized
-      }
-      const rms = Math.sqrt(sumSquares / bufferLength)
-
-      // Emit volume for visual feedback (0-1 scale)
-      if (onVolume) onVolume(Math.min(rms / 0.15, 1))
-
-      if (rms > BLOW_THRESHOLD) {
-        if (!blowStartTime) {
-          blowStartTime = Date.now()
-        } else if (Date.now() - blowStartTime >= CONFIRM_DURATION && !blowDetected) {
-          blowDetected = true
-          onBlow()
-          stopBlowDetection()
-          return
+      // ── Calibration phase ──
+      if (calibrating) {
+        calibrationSamples.push(rms)
+        if (onVolume) onVolume(0)
+        if (now - calibrationStart >= CALIBRATION_DURATION) {
+          baseline = calibrationSamples.reduce((a, b) => a + b, 0) / calibrationSamples.length
+          calibrating = false
+          lastFrameTime = now
+          if (onCalibrationDone) onCalibrationDone()
         }
-      } else {
-        blowStartTime = null
+        animationId = requestAnimationFrame(analyse)
+        return
+      }
+
+      // ── Detection phase ──
+      const dt = lastFrameTime ? (now - lastFrameTime) / 1000 : 0.016
+      lastFrameTime = now
+
+      const excessVolume = rms - baseline
+      if (onVolume) onVolume(Math.min(Math.max(excessVolume, 0) / 0.12, 1))
+
+      if (excessVolume > THRESHOLD_ABOVE_BASELINE) {
+        blowEnergy += excessVolume * dt * 3.5  // multiplier to make it responsive
+      }
+
+      // Clamp
+      blowEnergy = Math.min(blowEnergy, MAX_ENERGY * 1.1)
+      if (onEnergy) onEnergy(blowEnergy)
+
+      // ── Check candles ──
+      let allOut = true
+      for (const c of candles) {
+        if (!c.extinguished && blowEnergy >= c.extinguishAt) {
+          c.extinguished = true
+          if (onCandleOut) onCandleOut(c.index)
+        }
+        if (!c.extinguished) allOut = false
+      }
+
+      if (allOut) {
+        // All candles extinguished — stop
+        stopBlowDetection()
+        return
       }
 
       animationId = requestAnimationFrame(analyse)
@@ -83,10 +145,6 @@ export function stopBlowDetection() {
   if (animationId) {
     cancelAnimationFrame(animationId)
     animationId = null
-  }
-  if (detectionInterval) {
-    clearInterval(detectionInterval)
-    detectionInterval = null
   }
   if (microphone) {
     microphone.disconnect()
