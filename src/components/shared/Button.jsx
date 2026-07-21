@@ -2,10 +2,7 @@ import React from 'react'
 
 const variants = {
   primary: [
-    'bg-secondary text-background font-semibold',
-    'hover:opacity-90 active:scale-95',
-    'shadow-lg shadow-secondary/20',
-    'border border-secondary/50',
+    'btn-primary font-semibold',
   ],
   secondary: [
     'bg-surface text-textMain font-medium',
@@ -37,7 +34,7 @@ const sizes = {
 }
 
 /**
- * Button component with 4 variants: primary, secondary, inverted, outlined
+ * Button component with 5 variants: primary, secondary, inverted, outlined, danger
  */
 export default function Button({
   children,
@@ -51,7 +48,7 @@ export default function Button({
   'aria-label': ariaLabel,
   ...props
 }) {
-  const variantClasses = (variants[variant] || variants.primary).join(' ')
+  const variantClasses = (variants[variant] || variants.secondary).join(' ')
   const sizeClasses = sizes[size] || sizes.md
 
   return (
@@ -62,7 +59,7 @@ export default function Button({
         'inline-flex items-center justify-center',
         'transition-all duration-200 ease-out',
         'cursor-pointer select-none',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         disabled || loading ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
         variantClasses,
         sizeClasses,

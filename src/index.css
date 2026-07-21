@@ -50,6 +50,20 @@ body {
 input, textarea, select {
   text-align: start;
   font-family: inherit;
+  color: var(--color-text-main);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-muted);
+  opacity: 0.85;
+}
+
+/* ─── Input focus glow (theme-aware) ───────────────────────────────── */
+input:focus,
+textarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--input-focus-glow, rgba(15, 82, 186, 0.15));
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────── */
@@ -77,9 +91,36 @@ input, textarea, select {
 /* ─── Gradient border utility ───────────────────────────────────────── */
 .gradient-border {
   background:
-    linear-gradient(#051937, #051937) padding-box,
-    linear-gradient(135deg, #E8B54D, #0F52BA, #E8B54D) border-box;
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    linear-gradient(135deg, var(--color-secondary), var(--color-primary), var(--color-secondary)) border-box;
   border: 2px solid transparent;
+}
+
+/* ─── Form card — glassmorphism with dynamic borders ─────────────────── */
+.form-card {
+  background: var(--card-bg);
+  border: var(--card-border);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--card-radius, 1.5rem);
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  box-shadow: 0 0 20px var(--btn-primary-shadow);
+  border: 1px solid transparent;
+  transition: all 0.2s ease-out;
+}
+.btn-primary:hover {
+  background: var(--btn-primary-hover);
+  box-shadow: 0 0 28px var(--btn-primary-shadow-hover);
+  transform: scale(1.02);
+}
+.btn-primary:active {
+  transform: scale(0.95);
 }
 
 /* ─── Gold shimmer ──────────────────────────────────────────────────── */
@@ -91,7 +132,7 @@ input, textarea, select {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(232, 181, 77, 0.08) 50%, transparent 100%);
+  background: var(--shimmer-gradient, linear-gradient(90deg, transparent 0%, rgba(232, 181, 77, 0.08) 50%, transparent 100%));
   background-size: 200% 100%;
   animation: shimmer 3s infinite linear;
   pointer-events: none;
@@ -198,19 +239,65 @@ input, textarea, select {
 /* ─── Themes ────────────────────────────────────────────────────────── */
 :root {
   /* Sapphire (Default) */
+  color-scheme: dark;
   --color-primary: #0F52BA;
   --color-secondary: #E8B54D;
   --color-surface: #020b19b3; /* Equivalent to primary-950/70 */
   --color-muted: #334C76;
   --color-background: #020B19;
   --color-text-main: #F7FAFC;
+  --color-accent: #E8B54D;
+  --color-confetti-1: var(--color-text-main);
+  --color-confetti-2: var(--color-accent);
+  --env-shadow: drop-shadow(0 8px 30px rgba(5, 25, 55, 0.6));
+  --seal-glow: url(#envGlow);
+  --bg-glow-env: radial-gradient(ellipse at center, rgba(232, 181, 77, 0.25) 0%, rgba(232, 181, 77, 0.08) 40%, transparent 70%);
+  --page-bg: var(--color-background);
+  /* Button */
+  --btn-primary-bg: #E8B54D;
+  --btn-primary-text: #020B19;
+  --btn-primary-shadow: rgba(232, 181, 77, 0.3);
+  --btn-primary-hover: #D4A43A;
+  --btn-primary-shadow-hover: rgba(232, 181, 77, 0.5);
+  /* Input focus */
+  --input-focus-glow: rgba(15, 82, 186, 0.2);
+  /* Card */
+  --card-bg: linear-gradient(var(--color-surface), var(--color-surface)) padding-box, linear-gradient(135deg, var(--color-secondary), var(--color-primary), var(--color-secondary)) border-box;
+  --card-border: 2px solid transparent;
+  --card-blur: blur(20px);
+  --card-shadow: 0 8px 32px rgba(2, 11, 25, 0.5), 0 0 0 1px rgba(232, 181, 77, 0.08);
+  /* Shimmer */
+  --shimmer-gradient: linear-gradient(90deg, transparent 0%, rgba(232, 181, 77, 0.08) 50%, transparent 100%);
 }
 
 :root[data-theme="rose"] {
-  --color-primary: #F66C89;
-  --color-secondary: #F27798;
-  --color-surface: #234D68;
-  --color-muted: #566B81;
-  --color-background: #013440;
-  --color-text-main: #F5F5F5;
+  color-scheme: dark;
+  --color-primary: #FF2E9A;
+  --color-secondary: #F48FB1;
+  --color-surface: rgba(26, 20, 32, 0.7); /* #1A1420 with 0.7 opacity */
+  --color-muted: #C9C9D6;
+  --color-background: #0B0710;
+  --color-text-main: #FFFFFF;
+  --color-accent: #7B1FA2;
+  --color-confetti-1: var(--color-primary);
+  --color-confetti-2: var(--color-accent);
+  --env-shadow: drop-shadow(0 8px 30px rgba(255, 46, 154, 0.15));
+  --seal-glow: drop-shadow(0 0 15px var(--color-primary));
+  --bg-glow-env: radial-gradient(ellipse at center, rgba(255, 46, 154, 0.25) 0%, rgba(123, 31, 162, 0.08) 40%, transparent 70%);
+  --page-bg: radial-gradient(circle at 70% 15%, rgba(255, 46, 154, 0.35), transparent 55%), radial-gradient(circle at 15% 90%, rgba(123, 31, 162, 0.35), transparent 55%), #0B0710;
+  /* Button */
+  --btn-primary-bg: #FF2E9A;
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-shadow: rgba(255, 46, 154, 0.55);
+  --btn-primary-hover: #FF2E9A;
+  --btn-primary-shadow-hover: rgba(255, 46, 154, 0.75);
+  /* Input focus */
+  --input-focus-glow: rgba(255, 46, 154, 0.3);
+  /* Card */
+  --card-bg: var(--color-surface);
+  --card-border: 1px solid rgba(255, 46, 154, 0.25);
+  --card-blur: blur(12px);
+  --card-shadow: 0 8px 32px rgba(11, 7, 16, 0.5);
+  /* Shimmer */
+  --shimmer-gradient: linear-gradient(90deg, transparent 0%, rgba(255, 46, 154, 0.1) 50%, transparent 100%);
 }

@@ -12,6 +12,7 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
   const [audioUrl, setAudioUrl] = useState('')
+  const [birthDate, setBirthDate] = useState('')
   const [theme, setTheme] = useState('sapphire')
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -22,10 +23,11 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
     try {
       const draft = localStorage.getItem(STORAGE_KEY)
       if (draft) {
-        const { name, message, audioUrl, theme } = JSON.parse(draft)
+        const { name, message, audioUrl, birthDate, theme } = JSON.parse(draft)
         if (name) setName(name)
         if (message) setMessage(message)
         if (audioUrl) setAudioUrl(audioUrl)
+        if (birthDate) setBirthDate(birthDate)
         if (theme) setTheme(theme)
       }
     } catch {}
@@ -34,10 +36,10 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
   // Auto-save draft and update theme preview
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, message, audioUrl, theme }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, message, audioUrl, birthDate, theme }))
     } catch {}
     if (onThemeChange) onThemeChange(theme)
-  }, [name, message, audioUrl, theme, onThemeChange])
+  }, [name, message, audioUrl, birthDate, theme, onThemeChange])
 
   // Auto-detect audio type
   const detectedAudioType = useMemo(() => detectAudioType(audioUrl), [audioUrl])
@@ -71,6 +73,7 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
         message: message.trim(),
         audioUrl: audioUrl.trim() || null,
         audioType: audioUrl.trim() ? (detectedAudioType || 'direct') : null,
+        birthDate: birthDate || null,
         theme,
         createdAt: serverTimestamp(),
       })
@@ -110,7 +113,7 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
             className={[
               'w-full px-5 py-3.5 rounded-2xl',
               'bg-surface backdrop-blur-sm',
-              'border text-textMain placeholder:text-textMain/40',
+              'border border-muted',
               'font-body text-base',
               'focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all duration-200',
               errors.name
@@ -143,7 +146,7 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
             className={[
               'w-full px-5 py-3.5 rounded-2xl resize-none',
               'bg-surface backdrop-blur-sm',
-              'border text-textMain placeholder:text-textMain/40',
+              'border border-muted',
               'font-body text-base leading-relaxed',
               'focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all duration-200',
               errors.message
@@ -159,7 +162,7 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
         {/* Audio URL field */}
         <div>
           <label htmlFor="birthday-audio" className="block text-sm font-semibold text-secondary mb-2 font-label">
-            🎵 رابط موسيقى أو يوتيوب <span className="text-tertiary/50 font-normal">(اختياري)</span>
+            🎵 رابط موسيقى أو يوتيوب <span className="text-muted font-normal">(اختياري)</span>
           </label>
           <input
             id="birthday-audio"
@@ -171,7 +174,7 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
             className={[
               'w-full px-5 py-3.5 rounded-2xl',
               'bg-surface backdrop-blur-sm',
-              'border text-textMain placeholder:text-textMain/40',
+              'border border-muted',
               'font-label text-sm',
               'focus:outline-none focus:ring-2 focus:ring-secondary/50 transition-all duration-200',
               errors.audioUrl
@@ -197,6 +200,26 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
           ) : null}
         </div>
 
+        {/* Birth Date field */}
+        <div>
+          <label htmlFor="birthday-date" className="block text-sm font-semibold text-secondary mb-2 font-label">
+            📅 تاريخ ميلاد صاحب/ة العيد <span className="text-muted font-normal">(اختياري)</span>
+          </label>
+          <input
+            id="birthday-date"
+            type="date"
+            value={birthDate}
+            onChange={e => setBirthDate(e.target.value)}
+            className={[
+              'w-full px-5 py-3.5 rounded-2xl',
+              'bg-surface backdrop-blur-sm',
+              'border border-muted',
+              'font-body text-base',
+              'focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary/60 transition-all duration-200',
+            ].join(' ')}
+          />
+        </div>
+
         {/* Theme selection */}
         <div>
           <label className="block text-sm font-semibold text-secondary mb-3 font-label">
@@ -206,9 +229,9 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
             <button
               type="button"
               onClick={() => setTheme('sapphire')}
-              className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200 ${
+              className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all duration-200 ${
                 theme === 'sapphire'
-                  ? 'bg-surface/80 border-secondary ring-1 ring-secondary/50'
+                  ? 'bg-surface/80 border-secondary ring-1 ring-secondary/50 shadow-md'
                   : 'bg-surface/40 border-muted hover:bg-surface/60'
               }`}
             >
@@ -218,13 +241,13 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
             <button
               type="button"
               onClick={() => setTheme('rose')}
-              className={`flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200 ${
+              className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all duration-200 ${
                 theme === 'rose'
-                  ? 'bg-surface/80 border-secondary ring-1 ring-secondary/50'
+                  ? 'bg-surface/80 border-secondary ring-1 ring-secondary/50 shadow-md'
                   : 'bg-surface/40 border-muted hover:bg-surface/60'
               }`}
             >
-              <div className="w-6 h-6 rounded-full shrink-0 shadow-inner" style={{ backgroundColor: '#F66C89' }} />
+              <div className="w-6 h-6 rounded-full shrink-0 shadow-inner" style={{ backgroundColor: '#E91E63' }} />
               <span className="text-sm font-label text-textMain">ثيم وردي</span>
             </button>
           </div>

@@ -15,12 +15,12 @@ export default function CreatorPage() {
   }, [previewTheme])
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background">
+    <div className="min-h-screen relative overflow-hidden transition-colors duration-500" style={{ background: 'var(--page-bg)' }}>
       {/* Noise texture */}
       <div className="noise-overlay" aria-hidden="true" />
 
-      {/* Ambient blobs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+      {/* Ambient blobs (Sapphire only) */}
+      <div className="theme-blobs fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div
           className="absolute -top-40 -end-40 w-96 h-96 rounded-full opacity-20 blur-3xl"
           style={{ background: 'radial-gradient(circle, var(--color-secondary), transparent)' }}
@@ -89,7 +89,7 @@ export default function CreatorPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="w-full max-w-lg"
           >
-            <div className="gradient-border rounded-3xl p-6 md:p-8 bg-surface/90 backdrop-blur-xl shadow-2xl shadow-background/60">
+            <div className="form-card rounded-3xl p-6 md:p-8">
               <AnimatePresence mode="wait">
                 {!generatedLink ? (
                   <motion.div

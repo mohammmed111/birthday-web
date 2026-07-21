@@ -74,7 +74,7 @@ export default function ReceiverPage() {
 
   // Shared background
   const bg = (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div className="theme-blobs fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-background" />
       <div className="absolute top-0 start-1/4 w-64 h-64 rounded-full blur-3xl opacity-20 bg-secondary/40" />
       <div className="absolute bottom-0 end-1/4 w-64 h-64 rounded-full blur-3xl opacity-15 bg-primary/20" />
@@ -166,10 +166,22 @@ export default function ReceiverPage() {
   }
 
   // ─── Success State — The Experience ──────────────────────────────────
-  const { name, message } = birthdayData
+  const { name, message, birthDate } = birthdayData
+
+  let age = null
+  if (birthDate) {
+    const today = new Date()
+    const birth = new Date(birthDate)
+    let calculatedAge = today.getFullYear() - birth.getFullYear()
+    const m = today.getMonth() - birth.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      calculatedAge--
+    }
+    age = Math.max(0, calculatedAge)
+  }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden transition-colors duration-500" style={{ background: 'var(--page-bg)' }}>
       {bg}
 
       {/* Global Audio Players */}
@@ -208,6 +220,7 @@ export default function ReceiverPage() {
             >
               <InteractiveCake
                 name={name}
+                age={age}
                 onAllExtinguished={() => setStage('message')}
               />
             </motion.div>
@@ -220,7 +233,11 @@ export default function ReceiverPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8 }}
             >
-              <MessageReveal name={name} message={message} />
+              <MessageReveal 
+                name={name} 
+                message={message} 
+                onReset={() => setStage('envelope')}
+              />
             </motion.div>
           )}
         </AnimatePresence>

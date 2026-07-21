@@ -6,7 +6,7 @@ import Button from '../shared/Button.jsx'
 /**
  * MessageReveal — dramatic reveal of the birthday message with confetti
  */
-export default function MessageReveal({ name, message }) {
+export default function MessageReveal({ name, message, onReset }) {
   const [phase, setPhase] = useState('confetti') // confetti | message | done
   const hasRun = useRef(false)
 
@@ -85,18 +85,18 @@ export default function MessageReveal({ name, message }) {
         {Array.from({ length: 25 }).map((_, i) => (
           <div
             key={i}
-            className="absolute text-secondary text-lg select-none"
+            className="absolute rounded-full"
             style={{
+              width:  `${Math.random() * 3 + 1.5}px`,
+              height: `${Math.random() * 3 + 1.5}px`,
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.4 + 0.1,
-              fontSize: `${Math.random() * 10 + 8}px`,
+              background: Math.random() > 0.5 ? 'var(--color-confetti-1)' : 'var(--color-confetti-2)',
+              opacity: Math.random() * 0.08 + 0.05,
               animation: `twinkle ${2 + Math.random() * 4}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 3}s`,
             }}
-          >
-            ✦
-          </div>
+          />
         ))}
       </div>
 
@@ -204,7 +204,8 @@ export default function MessageReveal({ name, message }) {
           variant="primary"
           size="md"
           onClick={() => {
-            fireConfetti()
+            if (onReset) onReset()
+            else fireConfetti()
           }}
           aria-label="إعادة إطلاق الاحتفال"
           icon={<span>🎉</span>}
