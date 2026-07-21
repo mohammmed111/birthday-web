@@ -50,6 +50,16 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
     if (!message.trim()) errs.message = 'الرسالة مطلوبة'
     if (message.length > MAX_CHARS) errs.message = `الرسالة تتجاوز ${MAX_CHARS} حرفاً`
     if (audioUrl && !isValidUrl(audioUrl)) errs.audioUrl = 'رابط الصوت غير صالح'
+    
+    if (birthDate) {
+      const today = new Date().toISOString().split('T')[0]
+      if (birthDate < '1900-01-01') {
+        errs.birthDate = 'يرجى إدخال سنة صالحة (بعد 1900)'
+      } else if (birthDate > today) {
+        errs.birthDate = 'لا يمكن أن يكون تاريخ الميلاد في المستقبل'
+      }
+    }
+    
     return errs
   }
 
@@ -208,7 +218,9 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
           <input
             id="birthday-date"
             type="date"
-            value={birthDate}
+            min="1900-01-01"
+            max={new Date().toISOString().split('T')[0]}
+            defaultValue={birthDate}
             onChange={e => setBirthDate(e.target.value)}
             className={[
               'w-full px-5 py-3.5 rounded-2xl',
@@ -216,8 +228,14 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
               'border border-muted',
               'font-body text-base',
               'focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary/60 transition-all duration-200',
+              errors.birthDate
+                ? 'border-red-500/60 focus:ring-red-500/30'
+                : 'border-muted focus:border-secondary/60',
             ].join(' ')}
           />
+          {errors.birthDate && (
+            <p role="alert" className="mt-1.5 text-xs text-red-400 font-label">{errors.birthDate}</p>
+          )}
         </div>
 
         {/* Theme selection */}
