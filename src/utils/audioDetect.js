@@ -48,25 +48,18 @@ export async function startBlowDetection({
     const bufferLength = analyser.frequencyBinCount
     const dataArray = new Uint8Array(bufferLength)
 
-    // ── Build candle thresholds with random jitter ──
-    const candles = []
-    for (let i = 0; i < candleCount; i++) {
-      const jitter = (Math.random() - 0.5) * 0.08 * (MAX_ENERGY / candleCount)
-      candles.push({
-        index: i,
-        extinguishAt: (i + 1) * (MAX_ENERGY / candleCount) + jitter,
-        extinguished: false,
-      })
-    }
-    // Sort by extinguishAt so lower thresholds fire first
-    candles.sort((a, b) => a.extinguishAt - b.extinguishAt)
+    // ── Build remaining candles array ──
+    let remainingCandles = Array.from({length: candleCount}, (_, i) => i)
+    // Randomize order so candles go out unpredictably
+    remainingCandles.sort(() => Math.random() - 0.5)
 
-    let blowEnergy = 0
     let baseline = 0
     let calibrating = true
     let calibrationSamples = []
     let calibrationStart = performance.now()
     let lastFrameTime = null
+    let lastExtinguishTime = 0
+    let visualEnergy = 0
 
     function getRMS() {
       analyser.getByteTimeDomainData(dataArray)
@@ -104,25 +97,44 @@ export async function startBlowDetection({
       const excessVolume = rms - baseline
       if (onVolume) onVolume(Math.min(Math.max(excessVolume, 0) / 0.12, 1))
 
-      if (excessVolume > THRESHOLD_ABOVE_BASELINE) {
-        blowEnergy += excessVolume * dt * 3.5  // multiplier to make it responsive
-      }
+      if (excessVolume > 0.02) {
+        let candlesToExtinguish = 0
+        let cooldown = 400
 
-      // Clamp
-      blowEnergy = Math.min(blowEnergy, MAX_ENERGY * 1.1)
-      if (onEnergy) onEnergy(blowEnergy)
-
-      // ── Check candles ──
-      let allOut = true
-      for (const c of candles) {
-        if (!c.extinguished && blowEnergy >= c.extinguishAt) {
-          c.extinguished = true
-          if (onCandleOut) onCandleOut(c.index)
+        if (excessVolume > 0.12) {
+          // قوية جداً: كل الشموع المتبقية
+          candlesToExtinguish = remainingCandles.length
+          cooldown = 0
+        } else if (excessVolume > 0.06) {
+          // متوسطة: شمعتين إلى 3
+          candlesToExtinguish = Math.min(Math.floor(Math.random() * 2) + 2, remainingCandles.length)
+          cooldown = 200
+        } else {
+          // خفيفة: شمعة واحدة
+          candlesToExtinguish = 1
+          cooldown = 400
         }
-        if (!c.extinguished) allOut = false
+
+        if (now - lastExtinguishTime > cooldown && candlesToExtinguish > 0) {
+          for (let i = 0; i < candlesToExtinguish; i++) {
+            if (remainingCandles.length > 0) {
+              const idx = remainingCandles.pop()
+              if (onCandleOut) onCandleOut(idx)
+            }
+          }
+          lastExtinguishTime = now
+        }
       }
 
-      if (allOut) {
+      // Smooth visual energy for UI
+      visualEnergy = Math.max(0, visualEnergy - dt * 1.5)
+      if (excessVolume > 0.02) {
+        visualEnergy += excessVolume * dt * 8
+      }
+      visualEnergy = Math.min(visualEnergy, 1)
+      if (onEnergy) onEnergy(visualEnergy)
+
+      if (remainingCandles.length === 0) {
         // All candles extinguished — stop
         stopBlowDetection()
         return

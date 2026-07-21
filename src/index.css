@@ -301,3 +301,34 @@ textarea:focus {
   /* Shimmer */
   --shimmer-gradient: linear-gradient(90deg, transparent 0%, rgba(255, 46, 154, 0.1) 50%, transparent 100%);
 }
+
+/* ─── Loading Screen ────────────────────────────────────────────────── */
+.loading-screen {
+  background:
+    radial-gradient(circle at 70% 15%, color-mix(in srgb, var(--color-primary) 30%, transparent), transparent 55%),
+    radial-gradient(circle at 15% 90%, color-mix(in srgb, var(--color-accent) 30%, transparent), transparent 55%),
+    var(--color-background);
+}
+
+.loading-envelope-icon {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.loading-progress-line {
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+.loading-progress-line-filled {
+  background: var(--color-primary);
+}
+
+.loading-text {
+  color: var(--color-text-heading);
+}

@@ -2,6 +2,20 @@
 <html dir="rtl" lang="ar">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function() {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var theme = params.get('t');
+          if (!theme) {
+            theme = localStorage.getItem('theme');
+          }
+          if (theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+          }
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/cake-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>بطاقة عيد ميلاد</title>

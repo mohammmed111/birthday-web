@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase.js'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -67,9 +67,6 @@ export default function ReceiverPage() {
       const activeTheme = birthdayData.theme || 'sapphire'
       document.documentElement.dataset.theme = activeTheme
     }
-    return () => {
-      delete document.documentElement.dataset.theme
-    }
   }, [birthdayData])
 
   // Shared background
@@ -85,29 +82,29 @@ export default function ReceiverPage() {
   // ─── Loading State ──────────────────────────────────────────────────
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative">
-        {bg}
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative loading-screen transition-colors duration-500">
+        <div className="noise-overlay" />
         <div className="relative z-10 flex flex-col items-center gap-6">
           {/* Pulsing envelope icon */}
           <motion.div
             animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-            className="text-7xl"
+            className="loading-envelope-icon"
           >
-            ✉️
+            <span className="text-5xl">✉️</span>
           </motion.div>
 
           {/* Shimmer loading bars */}
           <div className="space-y-3 w-48">
-            <div className="h-2.5 rounded-full bg-surface overflow-hidden">
-              <div className="h-full w-full bg-gradient-to-e from-transparent via-secondary/30 to-transparent animate-shimmer" />
+            <div className="h-2.5 rounded-full overflow-hidden loading-progress-line">
+              <div className="h-full loading-progress-line-filled animate-shimmer" style={{ width: '60%' }} />
             </div>
-            <div className="h-2 rounded-full bg-surface/50 overflow-hidden w-3/4 mx-auto">
-              <div className="h-full w-full bg-gradient-to-e from-transparent via-secondary/20 to-transparent animate-shimmer" />
+            <div className="h-2 rounded-full overflow-hidden w-3/4 mx-auto loading-progress-line">
+              <div className="h-full loading-progress-line-filled animate-shimmer" style={{ width: '40%', animationDelay: '0.2s' }} />
             </div>
           </div>
 
-          <p className="text-muted text-sm font-label mt-2">
+          <p className="loading-text text-sm font-label mt-2 tracking-wide">
             جاري تحميل مفاجأتك...
           </p>
         </div>

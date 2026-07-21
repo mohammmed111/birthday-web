@@ -78,7 +78,7 @@ export default function CreateForm({ onLinkCreated, onThemeChange }) {
         createdAt: serverTimestamp(),
       })
 
-      const link = `${window.location.origin}/b/${docRef.id}`
+      const link = `${window.location.origin}/b/${docRef.id}?t=${theme}`
       onLinkCreated(link)
       localStorage.removeItem(STORAGE_KEY)
     } catch (err) {

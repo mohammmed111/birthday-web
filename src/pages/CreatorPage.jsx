@@ -136,7 +136,7 @@ export default function CreatorPage() {
         {/* Footer */}
         <footer className="py-6 text-center">
           <p className="text-tertiary/20 text-xs font-label">
-            صُنع بـ ❤️ — بياناتك محفوظة بأمان
+            Developed by Mohammed Ahmed
           </p>
         </footer>
       </div>
