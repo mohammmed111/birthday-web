@@ -332,3 +332,30 @@ textarea:focus {
 .loading-text {
   color: var(--color-text-heading);
 }
+
+/* ─── Footer ────────────────────────────────────────────────── */
+.dev-credit {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: center;
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  padding-top: 14px;
+  margin-top: 24px;
+  border-top: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.dev-credit a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
+.dev-credit a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}

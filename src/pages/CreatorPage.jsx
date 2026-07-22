@@ -135,9 +135,9 @@ export default function CreatorPage() {
 
         {/* Footer */}
         <footer className="py-6 text-center">
-          <p className="text-tertiary/20 text-xs font-label">
-            Developed by Mohammed Ahmed
-          </p>
+          <div className="dev-credit">
+            Developed by Mohammed Ahmed &amp; <a href="https://rise-website.www-riseteam.workers.dev" target="_blank" rel="noopener noreferrer">R.I.S.E</a>
+          </div>
         </footer>
       </div>
     </div>
